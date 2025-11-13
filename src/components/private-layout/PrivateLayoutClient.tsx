@@ -1,7 +1,7 @@
 "use client";
 
 import { UserButton, useUser } from "@clerk/nextjs";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useMemo, useState } from "react";
 import { Toaster } from "sonner";
 import Image from "next/image";
 import { SiClaude } from "react-icons/si";
@@ -34,35 +34,40 @@ import { VscHistory } from "react-icons/vsc";
 import { PiStrategyLight } from "react-icons/pi";
 import { RiMoneyDollarCircleLine } from "react-icons/ri";
 import { VscFolderLibrary } from "react-icons/vsc";
+import { getTradeSummary } from "@/features/calendar/getTradeSummary";
+import { getTradeDetailsForEachDay } from "@/features/calendar/getTradeDetailsForEachDay";
 
 interface PrivateLayoutClientProps {
     children: ReactNode;
     initialTradeRecords: Trades[];
     initialStrategies: Strategy[];
-    initialMonthViewTrades: { [key: string]: number };
-    initialYearViewTrades: { [key: string]: number };
-    initialParticularYearTrades: { [key: string]: number };
-    initialTradeDetailsForEachDay: {
-        [key: string]: {
-            result: number;
-            win: number;
-            lost: number;
-        };
-    };
 }
 
 export default function PrivateLayoutClient({
     children,
     initialTradeRecords,
     initialStrategies,
-    initialMonthViewTrades,
-    initialYearViewTrades,
-    initialParticularYearTrades,
-    initialTradeDetailsForEachDay,
 }: PrivateLayoutClientProps) {
     const { user } = useUser();
     const dispatch = useAppDispatch();
     const [isMounted, setIsMounted] = useState(false);
+
+    const monthViewTrades = useMemo(
+        () => getTradeSummary("day", initialTradeRecords),
+        [initialTradeRecords]
+    );
+    const yearViewTrades = useMemo(
+        () => getTradeSummary("month", initialTradeRecords),
+        [initialTradeRecords]
+    );
+    const particularYearTrades = useMemo(
+        () => getTradeSummary("year", initialTradeRecords),
+        [initialTradeRecords]
+    );
+    const tradeDetailsForEachDay = useMemo(
+        () => getTradeDetailsForEachDay(initialTradeRecords),
+        [initialTradeRecords]
+    );
 
     useEffect(() => {
         setIsMounted(true);
@@ -76,32 +81,30 @@ export default function PrivateLayoutClient({
             dispatch(setStrategyState(initialStrategies));
         }
 
-        if (Object.keys(initialMonthViewTrades).length > 0) {
-            dispatch(setInitialMonthViewSummary(initialMonthViewTrades));
+        if (Object.keys(monthViewTrades).length > 0) {
+            dispatch(setInitialMonthViewSummary(monthViewTrades));
         }
 
-        if (Object.keys(initialYearViewTrades).length > 0) {
-            dispatch(setInitialYearViewSummary(initialYearViewTrades));
+        if (Object.keys(yearViewTrades).length > 0) {
+            dispatch(setInitialYearViewSummary(yearViewTrades));
         }
 
-        if (Object.keys(initialParticularYearTrades).length > 0) {
+        if (Object.keys(particularYearTrades).length > 0) {
             dispatch(
-                setInitialTotalOfParticularYearSummary(
-                    initialParticularYearTrades
-                )
+                setInitialTotalOfParticularYearSummary(particularYearTrades)
             );
         }
-        if (Object.keys(initialTradeDetailsForEachDay).length > 0) {
-            dispatch(setTradeDetailsForEachDay(initialTradeDetailsForEachDay));
+        if (Object.keys(tradeDetailsForEachDay).length > 0) {
+            dispatch(setTradeDetailsForEachDay(tradeDetailsForEachDay));
         }
     }, [
         dispatch,
         initialTradeRecords,
         initialStrategies,
-        initialMonthViewTrades,
-        initialYearViewTrades,
-        initialParticularYearTrades,
-        initialTradeDetailsForEachDay,
+        monthViewTrades,
+        yearViewTrades,
+        particularYearTrades,
+        tradeDetailsForEachDay,
     ]);
 
     const getUserDisplayName = () => {
@@ -109,7 +112,7 @@ export default function PrivateLayoutClient({
         return (
             user.firstName ??
             (user.username ?? "").charAt(0).toLocaleUpperCase() +
-            (user.username ?? "").slice(1)
+                (user.username ?? "").slice(1)
         );
     };
 
