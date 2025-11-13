@@ -51,7 +51,7 @@ export async function POST(request: Request) {
 
     try {
         const res = await anthropic.messages.create({
-            model: "claude-3-7-sonnet-20250219",
+            model: "claude-sonnet-4-5-20250929",
             max_tokens: 4000,
             temperature: 1,
             system: 'Using the provided trade data, group each trade by its opening time in 3-hour intervals (e.g., 00:00–02:59, 03:00–05:59, 06:00–08:59, etc.). For each interval, analyze trading patterns and performance.\n\nBased on your analysis, return ONLY comments about the trading patterns and recommendations. Structure the response in JSON format with the following structure:\n\n{\n  "claudeComments": {\n    "generalObservations": [\n      // Array of observations about the trading patterns\n    ],\n    "recommendations": [\n      // Array of actionable recommendations based on the analysis\n    ]\n  }\n}\n\nIMPORTANT: You must return ONLY valid JSON with no markdown formatting, no backticks, no code block markers, and no additional text before or after the JSON object. The response should begin with { and end with } and contain nothing else.',
@@ -67,7 +67,21 @@ export async function POST(request: Request) {
                 },
             ],
         });
-        return new Response(JSON.stringify(res), {
+
+        // Extract the text content
+        const textContent = res.content.find((block) => block.type === "text");
+        let responseText = textContent?.text || "";
+
+        // Strip markdown code blocks if present
+        responseText = responseText
+            .replace(/```json\n?/g, "")
+            .replace(/```\n?/g, "")
+            .trim();
+
+        // Parse and validate the JSON
+        const parsedResponse = JSON.parse(responseText);
+
+        return new Response(JSON.stringify(parsedResponse), {
             status: 200,
             headers: { "Content-Type": "application/json" },
         });

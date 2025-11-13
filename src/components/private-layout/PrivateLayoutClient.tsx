@@ -218,7 +218,7 @@ export default function PrivateLayoutClient({
                                 </NavigationMenuItem>
                                 <NavigationMenuItem>
                                     <NavigationMenuTrigger className="text-[.85rem] text-zinc-700">
-                                        Trade AI
+                                        Report AI
                                     </NavigationMenuTrigger>
                                     <NavigationMenuContent>
                                         <ul className="grid gap-3 p-4 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
@@ -226,13 +226,13 @@ export default function PrivateLayoutClient({
                                                 <NavigationMenuLink asChild>
                                                     <div className="test flex h-full w-full select-none flex-col justify-end rounded-md p-6">
                                                         <div className="mb-2 mt-4 text-lg text-white">
-                                                            Trade AI
+                                                            Report AI
                                                         </div>
                                                         <p className="leading-5 text-[.85rem] text-zinc-100">
                                                             Powerful tool to
                                                             improve your results
                                                             with AI. Powered by
-                                                            Claude 3.7 Sonnet.
+                                                            Claude 4.5 Sonnet.
                                                         </p>
                                                     </div>
                                                 </NavigationMenuLink>
@@ -241,7 +241,7 @@ export default function PrivateLayoutClient({
                                                 <Link href="/private/tradeAI">
                                                     <div className="flex gap-2 items-center">
                                                         <SiClaude className="text-[#da7756]" />
-                                                        <h1>Trade AI</h1>
+                                                        <h1>Report AI</h1>
                                                     </div>
                                                     <span className="leading-none text-[.85rem] text-zinc-400">
                                                         Generate an AI-powered

@@ -8,8 +8,9 @@ export function getDataForSummaryChartGridPageOne(
     }
 
     // Clone the trades array to avoid modifying the original
-    const tradesCopy = [...trades].filter((trade): trade is Trades & { closeDate: string } =>
-        Boolean(trade.closeDate)
+    const tradesCopy = [...trades].filter(
+        (trade): trade is Trades & { closeDate: string } =>
+            Boolean(trade.closeDate)
     );
 
     // 1) Sort trades by closeDate
@@ -46,7 +47,7 @@ export function getDataForSummaryChartGridPageOne(
 
         // Construct a new Date from the dayKey (in "YYYY-MM-DD" format)
         // We add "T00:00:00" to avoid time-zone offset issues.
-        const parsedDate = new Date(`${dayKey}T00:00:00`);
+        const parsedDate = new Date(`${dayKey}T00:00:00Z`);
 
         resultArray.push({
             date: parsedDate,
@@ -113,17 +114,17 @@ export function getOtherDataForGridPageOne(trades: Trades[]) {
     const averageTimeInBuyPosition =
         trades.length > 0
             ? Math.floor(
-                calculateTotalTimeInPositionHours(trades, "buy") /
-                (allBuyPositions || 1)
-            )
+                  calculateTotalTimeInPositionHours(trades, "buy") /
+                      (allBuyPositions || 1)
+              )
             : 0;
 
     const averageTimeInSellPosition =
         trades.length > 0
             ? Math.floor(
-                calculateTotalTimeInPositionHours(trades, "sell") /
-                (allSellPositions || 1)
-            )
+                  calculateTotalTimeInPositionHours(trades, "sell") /
+                      (allSellPositions || 1)
+              )
             : 0;
 
     const sequenceProfitLost = sequenceOfProfitableLostTrades(trades);
@@ -189,7 +190,10 @@ function calculateTotalTimeInPositionHours(
 ): number {
     if (trades.length === 0) return 0;
     const filteredTrades = trades.filter(
-        (trade): trade is Trades & { closeDate: string; closeTime: string } => trade.positionType === filter && Boolean(trade.closeDate) && Boolean(trade.closeTime)
+        (trade): trade is Trades & { closeDate: string; closeTime: string } =>
+            trade.positionType === filter &&
+            Boolean(trade.closeDate) &&
+            Boolean(trade.closeTime)
     );
 
     const totalTimeInPositionHours = filteredTrades.reduce((acc, trade) => {
@@ -217,8 +221,9 @@ function calculateTotalTimeInPositionHours(
 function sequenceOfProfitableLostTrades(trades: Trades[]) {
     if (trades.length === 0) return { profitable: 0, lost: 0 };
 
-    const tradesCopy = [...trades].filter((trade): trade is Trades & { closeDate: string } =>
-        Boolean(trade.closeDate)
+    const tradesCopy = [...trades].filter(
+        (trade): trade is Trades & { closeDate: string } =>
+            Boolean(trade.closeDate)
     );
 
     const sortedTrades = tradesCopy.sort((a, b) => {

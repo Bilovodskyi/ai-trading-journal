@@ -20,9 +20,9 @@ export default function Report() {
     const hasFetched = useRef(false);
 
     const filteredDataForAICall = trades?.map(
-        ({ result, instrumentName, openTime }) => ({
+        ({ result, symbolName, openTime }) => ({
             result,
-            instrumentName,
+            symbolName,
             openTime,
         })
     );
@@ -80,10 +80,7 @@ export default function Report() {
                     throw new Error(err.error);
                 }
 
-                const data: { content: { text: string }[] } = await res.json();
-                const claudeReport: ApiResponse = JSON.parse(
-                    data.content[0].text
-                );
+                const claudeReport: ApiResponse = await res.json();
 
                 setReport((prev) => {
                     if (!prev) return null;
