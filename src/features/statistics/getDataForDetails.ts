@@ -27,8 +27,9 @@ export const getOtherDataForGridPageTwo = (
 
     const topTrades = getTopTrades(trades);
 
-    const closedTrades = trades.filter((trade): trade is Trades & { closeDate: string } =>
-        Boolean(trade.closeDate)
+    const closedTrades = trades.filter(
+        (trade): trade is Trades & { closeDate: string } =>
+            Boolean(trade.closeDate)
     );
 
     const topTenTrades = [...closedTrades]
@@ -36,7 +37,9 @@ export const getOtherDataForGridPageTwo = (
         .slice(0, 11);
 
     const results = topTenTrades.map((trade) => Number(trade.result));
-    const dates = topTenTrades.filter((trade) => trade.closeDate).map((trade) => trade.closeDate.split("T")[0]);
+    const dates = topTenTrades
+        .filter((trade) => trade.closeDate)
+        .map((trade) => trade.closeDate.split("T")[0]);
 
     const convertedTopInstruments = topTrades
         .filter((trade) => trade.label !== "Other")
@@ -95,7 +98,7 @@ export const getOtherDataForGridPageTwo = (
 const getTopTrades = (trades: Trades[]) => {
     const topTrades: { [key: string]: number } = {};
     for (let i = 0; i < trades.length; i++) {
-        const name = trades[i].instrumentName;
+        const name = trades[i].symbolName;
         if (topTrades[name]) {
             topTrades[name] += 1;
         } else {
@@ -136,16 +139,18 @@ function getTopInstrumentsByDay(
         instrumentData[instrument] = Array(7).fill(0);
     });
 
-    trades.filter((trade): trade is Trades & { closeDate: string } =>
-        Boolean(trade.closeDate)
-    ).forEach((trade) => {
-        const date = new Date(trade.closeDate);
-        const dayIndex = date.getDay();
+    trades
+        .filter((trade): trade is Trades & { closeDate: string } =>
+            Boolean(trade.closeDate)
+        )
+        .forEach((trade) => {
+            const date = new Date(trade.closeDate);
+            const dayIndex = date.getUTCDay();
 
-        if (topInstruments.includes(trade.instrumentName)) {
-            instrumentData[trade.instrumentName][dayIndex]++;
-        }
-    });
+            if (topInstruments.includes(trade.symbolName)) {
+                instrumentData[trade.symbolName][dayIndex]++;
+            }
+        });
 
     const result = Object.entries(instrumentData).map(([instrument, data]) => ({
         [instrument]: data,
