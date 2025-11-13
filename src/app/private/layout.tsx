@@ -24,19 +24,10 @@ export default async function PrivateLayout({
         }
     }
 
-    const monthViewTrades = getTradeSummary("day", tradeRecords);
-    const yearViewTrades = getTradeSummary("month", tradeRecords);
-    const particularYearTrades = getTradeSummary("year", tradeRecords);
-    const tradeDetailsForEachDay = getTradeDetailsForEachDay(tradeRecords);
-
     return (
         <PrivateLayoutClient
             initialTradeRecords={tradeRecords}
-            initialStrategies={strategies}
-            initialMonthViewTrades={monthViewTrades}
-            initialYearViewTrades={yearViewTrades}
-            initialParticularYearTrades={particularYearTrades}
-            initialTradeDetailsForEachDay={tradeDetailsForEachDay}>
+            initialStrategies={strategies}>
             {children}
         </PrivateLayoutClient>
     );
