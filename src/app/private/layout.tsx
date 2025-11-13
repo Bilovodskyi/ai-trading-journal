@@ -1,8 +1,6 @@
 import { getAllTradeRecords } from "@/server/actions/trades";
 import { getAllStrategies } from "@/server/actions/strategies";
-import { getTradeSummary } from "@/features/calendar/getTradeSummary";
 import PrivateLayoutClient from "@/components/private-layout/PrivateLayoutClient";
-import { getTradeDetailsForEachDay } from "@/features/calendar/getTradeDetailsForEachDay";
 import { auth } from "@clerk/nextjs/server";
 import { Strategy } from "@/types/strategies.types";
 
