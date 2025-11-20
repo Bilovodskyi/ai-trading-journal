@@ -12,6 +12,11 @@ import { setIsDialogOpen } from "@/redux/slices/calendarSlice";
 import { TradeDialog } from "../trade-dialog";
 import { Sheet, SheetContent, SheetTrigger } from "../ui/sheet";
 import { getPlural } from "@/lib/utils";
+import { TradeList } from "./TradeList";
+import { useEffect, useState } from "react";
+import { getJournalDates } from "@/server/actions/journal";
+import { FileText } from "lucide-react";
+import Link from "next/link";
 
 export default function MonthView() {
     const { month, year } = useAppSelector((state) => state.calendar.monthView);
@@ -25,6 +30,20 @@ export default function MonthView() {
     );
     const allTrades =
         useAppSelector((state) => state.tradeRecords.listOfTrades) ?? [];
+
+    const [journalDates, setJournalDates] = useState<Set<string>>(new Set());
+
+    useEffect(() => {
+        const fetchJournalDates = async () => {
+            const dates = await getJournalDates();
+            // Convert YYYY-MM-DD to DD-MM-YYYY to match calendar format
+            const formattedDates = new Set(
+                dates.map((date) => dayjs(date).format("DD-MM-YYYY"))
+            );
+            setJournalDates(formattedDates);
+        };
+        fetchJournalDates();
+    }, []);
 
     const currentMonth = getMonth(month, year);
 
@@ -43,6 +62,7 @@ export default function MonthView() {
                 <div key={i} className="grid grid-cols-7 col-span-7 row-span-1">
                     {week.map((day, j) => {
                         const dayKey = day.format("DD-MM-YYYY");
+                        const hasJournalEntry = journalDates.has(dayKey);
                         const openTradesCount = allTrades.filter(
                             (trade) =>
                                 (!trade.closeDate || trade.closeDate === "") &&
@@ -159,121 +179,16 @@ export default function MonthView() {
                                                         </div>
                                                     </HoverCardTrigger>
                                                     <HoverCardContent className="w-[420px]">
-                                                        {allTrades.filter(
-                                                            (t) =>
-                                                                (!t.closeDate ||
-                                                                    t.closeDate ===
-                                                                        "") &&
-                                                                dayjs(
-                                                                    t.openDate
-                                                                ).format(
-                                                                    "DD-MM-YYYY"
-                                                                ) ===
-                                                                    day.format(
-                                                                        "DD-MM-YYYY"
-                                                                    )
-                                                        ).length > 0 && (
-                                                            <div className="mb-1 flex items-center border-b border-zinc-200 pb-2">
-                                                                <p className="text-sm font-bold text-zinc-500">
-                                                                    Open{" "}
-                                                                    {getPlural(
-                                                                        allTrades.filter(
-                                                                            (
-                                                                                t
-                                                                            ) =>
-                                                                                (!t.closeDate ||
-                                                                                    t.closeDate ===
-                                                                                        "") &&
-                                                                                dayjs(
-                                                                                    t.openDate
-                                                                                ).format(
-                                                                                    "DD-MM-YYYY"
-                                                                                ) ===
-                                                                                    day.format(
-                                                                                        "DD-MM-YYYY"
-                                                                                    )
-                                                                        )
-                                                                            .length,
-                                                                        "trade",
-                                                                        "trades"
-                                                                    )}
-                                                                    :
-                                                                </p>
-                                                            </div>
-                                                        )}
-                                                        <div className="space-y-2 max-h-60 overflow-y-auto">
-                                                            {allTrades
-                                                                .filter(
-                                                                    (t) =>
-                                                                        (!t.closeDate ||
-                                                                            t.closeDate ===
-                                                                                "") &&
-                                                                        dayjs(
-                                                                            t.openDate
-                                                                        ).format(
-                                                                            "DD-MM-YYYY"
-                                                                        ) ===
-                                                                            day.format(
-                                                                                "DD-MM-YYYY"
-                                                                            )
-                                                                )
-                                                                .map((t) => (
-                                                                    <div
-                                                                        key={
-                                                                            t.id
-                                                                        }
-                                                                        className="flex items-center justify-between px-3 py-2 [&:not(:first-child)]:border-t border-zinc-200">
-                                                                        <div className="flex items-center gap-3">
-                                                                            <span
-                                                                                className={`text-xs px-2 py-0.5 rounded-md text-white ${
-                                                                                    t.positionType ===
-                                                                                    "sell"
-                                                                                        ? "bg-sell"
-                                                                                        : "bg-buy"
-                                                                                }`}>
-                                                                                {
-                                                                                    t.positionType
-                                                                                }
-                                                                            </span>
-                                                                            <span className="text-sm text-zinc-700">
-                                                                                {
-                                                                                    t.symbolName
-                                                                                }
-                                                                            </span>
-                                                                        </div>
-                                                                        <div
-                                                                            className={`text-sm ${
-                                                                                Number(
-                                                                                    t.result
-                                                                                ) >=
-                                                                                0
-                                                                                    ? "text-buy"
-                                                                                    : "text-sell"
-                                                                            }`}>
-                                                                            <span className="text-zinc-500 text-xs mr-1">
-                                                                                Open
-                                                                                price:
-                                                                            </span>
-                                                                            {Number(
-                                                                                t.entryPrice ??
-                                                                                    0
-                                                                            ).toLocaleString(
-                                                                                "de-DE"
-                                                                            )}
-                                                                        </div>
-                                                                        <div className="text-sm">
-                                                                            <span className="text-zinc-500 text-xs mr-1">
-                                                                                Deposit:
-                                                                            </span>
-                                                                            {Number(
-                                                                                t.deposit
-                                                                            ).toLocaleString(
-                                                                                "de-DE"
-                                                                            )}
-                                                                        </div>
-                                                                    </div>
-                                                                ))}
-                                                        </div>
+                                                        <TradeList
+                                                            trades={allTrades.filter(
+                                                                (t) =>
+                                                                    (!t.closeDate || t.closeDate === "") &&
+                                                                    dayjs(t.openDate).format("DD-MM-YYYY") ===
+                                                                    day.format("DD-MM-YYYY")
+                                                            )}
+                                                            title="Open Trades"
+                                                            type="open"
+                                                        />
                                                     </HoverCardContent>
                                                 </HoverCard>
                                             )}
@@ -299,7 +214,7 @@ export default function MonthView() {
                                                             </div>
                                                         )}
                                                         <div
-                                                            className={`hidden md:flex shrink-0 px-3 py-1 text-[.7rem] flex-center rounded-full calendar-banner-shadow bg-blue-200 no-wrap ${
+                                                            className={`hidden md:flex shrink-0 px-3 py-1 text-[.7rem] flex-center rounded-full calendar-banner-shadow no-wrap ${
                                                                 trades[
                                                                     day.format(
                                                                         "DD-MM-YYYY"
@@ -331,210 +246,51 @@ export default function MonthView() {
                                                                     : "0"}
                                                             </div>
                                                         </div>
+                                                        {hasJournalEntry && (
+                                                            <Link
+                                                                href={`/private/journal/${day.format("YYYY/MM/DD")}`}
+                                                                onClick={(e) => e.stopPropagation()}
+                                                                className="shrink-0 p-2 text-[.7rem] flex-center rounded-full calendar-banner-shadow bg-orange-200 hover:bg-orange-300 transition-colors no-wrap gap-1.5">
+                                                                <FileText className="h-3 w-3" />
+                                                            </Link>
+                                                        )}
                                                     </div>
                                                 </HoverCardTrigger>
-                                                <HoverCardContent className="w-[420px]">
-                                                    <div className="mb-1 flex items-center border-b border-zinc-200 pb-2">
-                                                        <p className="text-sm font-bold text-zinc-500">
-                                                            Closed{" "}
-                                                            {getPlural(
-                                                                allTrades.filter(
-                                                                    (t) =>
-                                                                        dayjs(
-                                                                            t.closeDate
-                                                                        ).format(
-                                                                            "DD-MM-YYYY"
-                                                                        ) ===
-                                                                        day.format(
-                                                                            "DD-MM-YYYY"
-                                                                        )
-                                                                ).length,
-                                                                "trade",
-                                                                "trades"
-                                                            )}
-                                                            :
-                                                        </p>
-                                                    </div>
-                                                    <div className="space-y-2 max-h-60 overflow-y-auto">
-                                                        {allTrades
-                                                            .filter(
-                                                                (t) =>
-                                                                    dayjs(
-                                                                        t.closeDate
-                                                                    ).format(
-                                                                        "DD-MM-YYYY"
-                                                                    ) ===
-                                                                    day.format(
-                                                                        "DD-MM-YYYY"
-                                                                    )
-                                                            )
-                                                            .map((t) => (
-                                                                <div
-                                                                    key={t.id}
-                                                                    className="flex items-center justify-between px-3 py-2 [&:not(:first-child)]:border-t border-zinc-200">
-                                                                    <div className="flex items-center gap-3">
-                                                                        <span
-                                                                            className={`text-xs px-2 py-0.5 rounded-md text-white ${
-                                                                                t.positionType ===
-                                                                                "sell"
-                                                                                    ? "bg-sell"
-                                                                                    : "bg-buy"
-                                                                            }`}>
-                                                                            {
-                                                                                t.positionType
-                                                                            }
-                                                                        </span>
-                                                                        <span className="text-sm text-zinc-700">
-                                                                            {
-                                                                                t.symbolName
-                                                                            }
-                                                                        </span>
-                                                                    </div>
-                                                                    <div className="text-sm">
-                                                                        <span className="text-zinc-500 text-xs mr-1">
-                                                                            Deposit:
-                                                                        </span>
-                                                                        {Number(
-                                                                            t.deposit
-                                                                        ).toLocaleString(
-                                                                            "de-DE"
-                                                                        )}
-                                                                    </div>
-                                                                    <div
-                                                                        className={`text-sm ${
-                                                                            Number(
-                                                                                t.result
-                                                                            ) >=
-                                                                            0
-                                                                                ? "text-buy"
-                                                                                : "text-sell"
-                                                                        }`}>
-                                                                        <span className="text-zinc-500 text-xs mr-1">
-                                                                            Result:
-                                                                        </span>
-                                                                        {Number(
-                                                                            t.result ??
-                                                                                0
-                                                                        ).toLocaleString(
-                                                                            "de-DE"
-                                                                        )}
-                                                                    </div>
-                                                                </div>
-                                                            ))}
-                                                    </div>
-                                                    {allTrades.filter(
-                                                        (t) =>
-                                                            (!t.closeDate ||
-                                                                t.closeDate ===
-                                                                    "") &&
-                                                            dayjs(
-                                                                t.openDate
-                                                            ).format(
-                                                                "DD-MM-YYYY"
-                                                            ) ===
-                                                                day.format(
-                                                                    "DD-MM-YYYY"
-                                                                )
-                                                    ).length > 0 && (
-                                                        <div className="mb-1 mt-3 flex items-center border-b border-zinc-200 pb-2">
-                                                            <p className="text-sm font-bold text-zinc-500">
-                                                                Open{" "}
-                                                                {getPlural(
-                                                                    allTrades.filter(
-                                                                        (t) =>
-                                                                            (!t.closeDate ||
-                                                                                t.closeDate ===
-                                                                                    "") &&
-                                                                            dayjs(
-                                                                                t.openDate
-                                                                            ).format(
-                                                                                "DD-MM-YYYY"
-                                                                            ) ===
-                                                                                day.format(
-                                                                                    "DD-MM-YYYY"
-                                                                                )
-                                                                    ).length,
-                                                                    "trade",
-                                                                    "trades"
-                                                                )}
-                                                                :
-                                                            </p>
-                                                        </div>
-                                                    )}
-                                                    <div className="space-y-2 max-h-60 overflow-y-auto">
-                                                        {allTrades
-                                                            .filter(
-                                                                (t) =>
-                                                                    (!t.closeDate ||
-                                                                        t.closeDate ===
-                                                                            "") &&
-                                                                    dayjs(
-                                                                        t.openDate
-                                                                    ).format(
-                                                                        "DD-MM-YYYY"
-                                                                    ) ===
-                                                                        day.format(
-                                                                            "DD-MM-YYYY"
-                                                                        )
-                                                            )
-                                                            .map((t) => (
-                                                                <div
-                                                                    key={t.id}
-                                                                    className="flex items-center justify-between px-3 py-2 [&:not(:first-child)]:border-t border-zinc-200">
-                                                                    <div className="flex items-center gap-3">
-                                                                        <span
-                                                                            className={`text-xs px-2 py-0.5 rounded-md text-white ${
-                                                                                t.positionType ===
-                                                                                "sell"
-                                                                                    ? "bg-sell"
-                                                                                    : "bg-buy"
-                                                                            }`}>
-                                                                            {
-                                                                                t.positionType
-                                                                            }
-                                                                        </span>
-                                                                        <span className="text-sm text-zinc-700">
-                                                                            {
-                                                                                t.symbolName
-                                                                            }
-                                                                        </span>
-                                                                    </div>
-                                                                    <div
-                                                                        className={`text-sm ${
-                                                                            Number(
-                                                                                t.result
-                                                                            ) >=
-                                                                            0
-                                                                                ? "text-buy"
-                                                                                : "text-sell"
-                                                                        }`}>
-                                                                        <span className="text-zinc-500 text-xs mr-1">
-                                                                            Open
-                                                                            price:
-                                                                        </span>
-                                                                        {Number(
-                                                                            t.entryPrice ??
-                                                                                0
-                                                                        ).toLocaleString(
-                                                                            "de-DE"
-                                                                        )}
-                                                                    </div>
-                                                                    <div className="text-sm">
-                                                                        <span className="text-zinc-500 text-xs mr-1">
-                                                                            Deposit:
-                                                                        </span>
-                                                                        {Number(
-                                                                            t.deposit
-                                                                        ).toLocaleString(
-                                                                            "de-DE"
-                                                                        )}
-                                                                    </div>
-                                                                </div>
-                                                            ))}
-                                                    </div>
+                                                <HoverCardContent className="w-[420px] space-y-4">
+                                                    <TradeList
+                                                        trades={allTrades.filter(
+                                                            (t) =>
+                                                                dayjs(t.closeDate).format("DD-MM-YYYY") ===
+                                                                day.format("DD-MM-YYYY")
+                                                        )}
+                                                        title="Closed Trades"
+                                                        type="closed"
+                                                    />
+                                                    <TradeList
+                                                        trades={allTrades.filter(
+                                                            (t) =>
+                                                                (!t.closeDate || t.closeDate === "") &&
+                                                                dayjs(t.openDate).format("DD-MM-YYYY") ===
+                                                                day.format("DD-MM-YYYY")
+                                                        )}
+                                                        title="Open Trades"
+                                                        type="open"
+                                                    />
                                                 </HoverCardContent>
                                             </HoverCard>
                                         )}
+                                        {tradeDetailsForEachDay[
+                                            day.format("DD-MM-YYYY")
+                                        ] === undefined &&
+                                            openTradesCount === 0 &&
+                                            hasJournalEntry && (
+                                                <Link
+                                                    href={`/private/journal/${day.format("YYYY/MM/DD")}`}
+                                                    onClick={(e) => e.stopPropagation()}
+                                                    className="absolute bottom-2 shrink-0 p-2 text-[.7rem] hidden md:flex justify-center items-center rounded-full calendar-banner-shadow bg-orange-200 hover:bg-orange-300 transition-colors no-wrap gap-1.5">
+                                                    <FileText className="h-3 w-3" />
+                                                </Link>
+                                            )}
                                     </div>
                                 </SheetTrigger>
                                 <SheetContent className="">

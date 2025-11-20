@@ -44,10 +44,17 @@ export default function StrategyCard({
         >
             <AccordionItem value="item-1">
                 <div className="flex items-center justify-between py-3 px-4 rounded-lg bg-[rgb(245,245,245)] ">
-                    <AccordionTrigger>
-                        <div className="flex gap-4 items-center">
-                            <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
-                            <span>{strategy.strategyName}</span>
+                    <AccordionTrigger className="hover:no-underline py-0 pr-4">
+                        <div className="flex gap-4 items-center text-left">
+                            <div className="p-2 bg-white rounded-lg border border-neutral-200 shadow-sm">
+                                <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 text-neutral-500" />
+                            </div>
+                            <div className="flex flex-col gap-0.5">
+                                <span className="font-semibold text-neutral-900">{strategy.strategyName}</span>
+                                {strategy.description && (
+                                    <span className="text-sm text-neutral-500 font-normal line-clamp-1">{strategy.description}</span>
+                                )}
+                            </div>
                         </div>
                     </AccordionTrigger>
                     <div className="flex gap-6 items-center mr-4">
@@ -55,6 +62,7 @@ export default function StrategyCard({
                             openPositionRulesEditing={strategy.openPositionRules}
                             closePositionRulesEditing={strategy.closePositionRules}
                             strategyNameEditing={strategy.strategyName}
+                            descriptionEditing={strategy.description}
                             idEditing={strategy.id}
                         />
                         <DeleteStrategyButton strategy={strategy} />

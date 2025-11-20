@@ -66,6 +66,13 @@ export default function MobileNavigation() {
                 <div
                     className="flex gap-1 mobile-nav-link items-center"
                     onClick={() => setIsOpen(false)}>
+                    <Link href="/private/journal" className="w-full py-4">
+                        <p className="leading-none text-[1.5rem]">Journal</p>
+                    </Link>
+                </div>
+                <div
+                    className="flex gap-1 mobile-nav-link items-center"
+                    onClick={() => setIsOpen(false)}>
                     <Link href="/private/tradeAI" className="w-full py-4">
                         <p className="leading-none text-[1.5rem]">TradeAI</p>
                     </Link>

@@ -31,6 +31,7 @@ export const strategies = pgTable("strategies", {
 	id: uuid().primaryKey().notNull(),
 	userId: text().notNull(),
 	strategyName: text().notNull(),
+	description: text(),
 	openPositionRules: jsonb("open_position_rules").default([]).notNull(),
 	closePositionRules: jsonb("close_position_rules").default([]).notNull(),
 	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),

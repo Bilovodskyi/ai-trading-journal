@@ -72,14 +72,31 @@ export async function POST(request: Request) {
         const textContent = res.content.find((block) => block.type === "text");
         let responseText = textContent?.text || "";
 
-        // Strip markdown code blocks if present
-        responseText = responseText
-            .replace(/```json\n?/g, "")
-            .replace(/```\n?/g, "")
-            .trim();
+        console.log("Raw Claude response:", responseText);
+
+        // Robust JSON extraction: find the first '{' and the last '}'
+        const firstBrace = responseText.indexOf("{");
+        const lastBrace = responseText.lastIndexOf("}");
+
+        if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+            responseText = responseText.substring(firstBrace, lastBrace + 1);
+        }
+
+        console.log("Cleaned Claude response:", responseText);
+
+        if (!responseText) {
+             throw new Error("Empty response from Claude");
+        }
 
         // Parse and validate the JSON
-        const parsedResponse = JSON.parse(responseText);
+        let parsedResponse;
+        try {
+             parsedResponse = JSON.parse(responseText);
+        } catch (e) {
+             console.error("JSON Parse Error:", e);
+             console.error("Failed to parse string:", responseText);
+             throw new Error("Failed to parse AI response as JSON");
+        }
 
         return new Response(JSON.stringify(parsedResponse), {
             status: 200,

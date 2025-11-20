@@ -74,14 +74,20 @@ export default function StrategiesPage() {
         <div className="flex flex-col h-full">
             <div className="px-2 md:px-8 pt-6 pb-0 border-b border-neutral-200 md:space-y-4 2xl:space-y-8">
                 <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1 md:gap-3">
-                        <Image
-                            src="/main-logo.png"
-                            width={60}
-                            height={60}
-                            alt="Logo"
-                        />
-                        <h1 className="text-xl md:text-4xl">Your Strategies</h1>
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-neutral-100 rounded-xl">
+                            <Image
+                                src="/main-logo.png"
+                                width={40}
+                                height={40}
+                                alt="Logo"
+                                className="w-10 h-10"
+                            />
+                        </div>
+                        <div>
+                            <h1 className="text-2xl md:text-3xl font-bold text-neutral-900">Trading Strategies</h1>
+                            <p className="text-sm text-neutral-500 mt-1">Manage and track your trading rules</p>
+                        </div>
                     </div>
                     <AddStrategyDialog />
                 </div>

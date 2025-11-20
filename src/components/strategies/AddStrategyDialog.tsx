@@ -8,6 +8,7 @@ import {
     Dialog,
     DialogContent,
     DialogTrigger,
+    DialogDescription,
 } from "../ui/dialog";
 import { Pencil, Plus } from "lucide-react";
 import { Rule } from "@/types/dbSchema.types";
@@ -19,6 +20,7 @@ import {
     TableRow,
     TableHead,
     TableBody,
+    TableCell,
 } from "@/components/ui/table";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -31,27 +33,31 @@ import { Input } from "../ui/input";
 import { toast } from "sonner";
 import { useAppDispatch } from "@/redux/store";
 import { addStrategyToTheState, editStrategyInTheState } from "@/redux/slices/strategySlice";
+import { Label } from "../ui/label";
 
 export const rulesStyle = {
-    low: "bg-buyWithOpacity text-buy",
-    medium: "bg-yellow-400 bg-opacity-50 text-yellow-600",
-    high: "bg-sellWithOpacity text-sell",
+    low: "bg-emerald-100 text-emerald-700 border border-emerald-200",
+    medium: "bg-amber-100 text-amber-700 border border-amber-200",
+    high: "bg-rose-100 text-rose-700 border border-rose-200",
 };
 
 export default function AddStrategyDialog({
     openPositionRulesEditing,
     closePositionRulesEditing,
     strategyNameEditing,
+    descriptionEditing,
     idEditing,
 }: {
     openPositionRulesEditing?: Rule[];
     closePositionRulesEditing?: Rule[];
     strategyNameEditing?: string;
+    descriptionEditing?: string | null;
     idEditing?: string;
 }) {
     const [openPositionRules, setOpenPositionRules] = useState<Rule[]>([]);
     const [closePositionRules, setClosePositionRules] = useState<Rule[]>([]);
     const [strategyName, setStrategyName] = useState("");
+    const [description, setDescription] = useState("");
 
     const [submittingNewStrategy, setSubmittingNewStrategy] = useState(false);
 
@@ -64,33 +70,25 @@ export default function AddStrategyDialog({
     useEffect(() => {
         if (strategyNameEditing && openPositionRulesEditing && closePositionRulesEditing) {
             setStrategyName(strategyNameEditing);
+            setDescription(descriptionEditing || "");
             setOpenPositionRules(openPositionRulesEditing);
             setClosePositionRules(closePositionRulesEditing);
         }
-    }, [strategyNameEditing, openPositionRulesEditing, closePositionRulesEditing]);
+    }, [strategyNameEditing, descriptionEditing, openPositionRulesEditing, closePositionRulesEditing]);
 
     const handleCreateNewRule = ({ type }: { type: "open" | "close" }) => {
         const randomId = uuidv4();
+        const newRule = {
+            id: randomId,
+            priority: "medium" as const,
+            satisfied: false,
+            rule: "New Rule",
+        };
+
         if (type === "open") {
-            setOpenPositionRules((prev) => [
-                ...prev,
-                {
-                    id: randomId,
-                    priority: "medium",
-                    satisfied: false,
-                    rule: "New Rule",
-                },
-            ]);
+            setOpenPositionRules((prev) => [...prev, newRule]);
         } else {
-            setClosePositionRules((prev) => [
-                ...prev,
-                {
-                    id: randomId,
-                    priority: "medium",
-                    satisfied: false,
-                    rule: "New Rule",
-                },
-            ]);
+            setClosePositionRules((prev) => [...prev, newRule]);
         }
     };
 
@@ -101,40 +99,26 @@ export default function AddStrategyDialog({
         id: string;
         type: "open" | "close";
     }) => {
+        const updateRules = (prevRules: Rule[]) =>
+            prevRules.map((rule) => {
+                if (rule.id === id) {
+                    let nextPriority: Rule["priority"];
+                    if (rule.priority === "low") {
+                        nextPriority = "medium";
+                    } else if (rule.priority === "medium") {
+                        nextPriority = "high";
+                    } else {
+                        nextPriority = "low";
+                    }
+                    return { ...rule, priority: nextPriority };
+                }
+                return rule;
+            });
+
         if (type === "open") {
-            setOpenPositionRules((prevRules) =>
-                prevRules.map((rule) => {
-                    if (rule.id === id) {
-                        let nextPriority: Rule["priority"];
-                        if (rule.priority === "low") {
-                            nextPriority = "medium";
-                        } else if (rule.priority === "medium") {
-                            nextPriority = "high";
-                        } else {
-                            nextPriority = "low";
-                        }
-                        return { ...rule, priority: nextPriority };
-                    }
-                    return rule;
-                })
-            );
+            setOpenPositionRules(updateRules);
         } else {
-            setClosePositionRules((prevRules) =>
-                prevRules.map((rule) => {
-                    if (rule.id === id) {
-                        let nextPriority: Rule["priority"];
-                        if (rule.priority === "low") {
-                            nextPriority = "medium";
-                        } else if (rule.priority === "medium") {
-                            nextPriority = "high";
-                        } else {
-                            nextPriority = "low";
-                        }
-                        return { ...rule, priority: nextPriority };
-                    }
-                    return rule;
-                })
-            );
+            setClosePositionRules(updateRules);
         }
     };
 
@@ -147,24 +131,18 @@ export default function AddStrategyDialog({
         type: "open" | "close";
         newName: string;
     }) => {
+        const updateRules = (prevRules: Rule[]) =>
+            prevRules.map((rule) => {
+                if (rule.id === id) {
+                    return { ...rule, rule: newName };
+                }
+                return rule;
+            });
+
         if (type === "open") {
-            setOpenPositionRules((prevRules) =>
-                prevRules.map((rule) => {
-                    if (rule.id === id) {
-                        return { ...rule, rule: newName };
-                    }
-                    return rule;
-                })
-            );
+            setOpenPositionRules(updateRules);
         } else {
-            setClosePositionRules((prevRules) =>
-                prevRules.map((rule) => {
-                    if (rule.id === id) {
-                        return { ...rule, rule: newName };
-                    }
-                    return rule;
-                })
-            );
+            setClosePositionRules(updateRules);
         }
     };
 
@@ -207,6 +185,7 @@ export default function AddStrategyDialog({
                     userId: user?.id ?? "",
                     id: newId,
                     strategyName,
+                    description,
                 });
 
                 if (result?.success) {
@@ -216,11 +195,16 @@ export default function AddStrategyDialog({
                             closePositionRules,
                             id: newId,
                             strategyName,
+                            description,
                         })
                     );
 
                     toast.success("New strategy has been saved successfully!");
                     setIsDialogOpen(false);
+                    setStrategyName("");
+                    setDescription("");
+                    setOpenPositionRules([]);
+                    setClosePositionRules([]);
                 } else {
                     toast.error(result?.error || "Failed to save strategy");
                 }
@@ -249,7 +233,7 @@ export default function AddStrategyDialog({
             openPositionRules.length === 0
         ) {
             toast.error("You must provide at least 1 rule");
-        } else if (strategyName === strategyNameEditing && openPositionRules === openPositionRulesEditing && closePositionRules === closePositionRulesEditing) {
+        } else if (strategyName === strategyNameEditing && description === (descriptionEditing || "") && openPositionRules === openPositionRulesEditing && closePositionRules === closePositionRulesEditing) {
             toast.error("No changes made");
         } else {
             setSubmittingNewStrategy(true);
@@ -259,6 +243,7 @@ export default function AddStrategyDialog({
                     closePositionRules,
                     userId: user?.id ?? "",
                     strategyName,
+                    description,
                     id: idEditing ?? "",
                 });
 
@@ -269,6 +254,7 @@ export default function AddStrategyDialog({
                             closePositionRules,
                             id: idEditing ?? "",
                             strategyName,
+                            description,
                         })
                     );
                     toast.success("Strategy edited successfully!");
@@ -292,196 +278,218 @@ export default function AddStrategyDialog({
 
 
     return (
-        <>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogTrigger>
-                    {
-                        strategyNameEditing ? (
-                            <div className="p-1 rounded-md md:hover:bg-neutral-200">
-                                <Pencil size={18} />
-                            </div>) : (
-                            <div className="flex gap-2 items-center text-sm border border-zinc-200 md:hover:text-zinc-900 md:hover:bg-zinc-100 px-3 py-2 rounded-md shadow-sm">
-                                <Plus size={16} />
-                                New Strategy
-                            </div>)
-                    }
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+                {strategyNameEditing ? (
+                    <div className="p-2 rounded-md hover:bg-neutral-100 transition-colors cursor-pointer">
+                        <Pencil size={16} className="text-neutral-600" />
+                    </div>
+                ) : (
+                    <button className="flex gap-2 items-center text-sm font-medium border border-zinc-200 hover:bg-zinc-50 hover:border-zinc-300 transition-all px-4 py-2 rounded-lg shadow-sm bg-white">
+                        <Plus size={16} />
+                        New Strategy
+                    </button>
+                )}
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden gap-0">
+                <div className="p-6 pb-4 border-b border-neutral-100">
+                    <DialogHeader>
+                        <DialogTitle className="text-xl font-semibold text-neutral-900">
+                            {strategyNameEditing ? "Edit Strategy" : "Create New Strategy"}
+                        </DialogTitle>
+                        <DialogDescription className="text-neutral-500 mt-1.5">
+                            Define your trading rules to maintain discipline and consistency.
+                        </DialogDescription>
+                    </DialogHeader>
+                </div>
 
-                </DialogTrigger>
-                <DialogContent>
-                    <form className="sm:max-w-[460px] flex flex-col justify-between min-h-[312px] max-h-[calc(100vh-120px)]">
-                        <DialogHeader className="mb-2">
-                            <DialogTitle className="text-lg">
-                                Add a New Strategy
-                            </DialogTitle>
-                        </DialogHeader>
-                        <div className="mb-4">
-                            <label htmlFor="strategyName" className="sr-only">
-                                Strategy Name
-                            </label>
-                            <Input
-                                id="strategyName"
-                                type="text"
-                                placeholder="Enter strategy name"
-                                value={strategyName}
-                                onChange={(e) =>
-                                    setStrategyName(e.target.value)
-                                }
-                            />
-                        </div>
-                        <Tabs className="overflow-scroll" defaultValue="open">
-                            <TabsList className="grid w-full grid-cols-2 mb-6">
-                                <TabsTrigger value="open">
-                                    Open Rules
-                                </TabsTrigger>
-                                <TabsTrigger value="close">
-                                    Close Rules
-                                </TabsTrigger>
-                            </TabsList>
+                <div className="p-6 space-y-6">
+                    <div className="space-y-2">
+                        <Label htmlFor="strategyName" className="text-sm font-medium text-neutral-700">
+                            Strategy Name
+                        </Label>
+                        <Input
+                            id="strategyName"
+                            type="text"
+                            placeholder="E.g., &quot;MACD cross above signal line on 4h chart&quot;"
+                            value={strategyName}
+                            onChange={(e) => setStrategyName(e.target.value)}
+                            className="h-10"
+                        />
+                    </div>
 
-                            <TabsContent
+                    <div className="space-y-2">
+                        <Label htmlFor="description" className="text-sm font-medium text-neutral-700">
+                            Description <span className="text-neutral-400 font-normal">(Optional)</span>
+                        </Label>
+                        <textarea
+                            id="description"
+                            placeholder="Describe your strategy's goals, timeframe, or key indicators..."
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
+                        />
+                    </div>
+
+                    <Tabs defaultValue="open" className="w-full">
+                        <TabsList className="grid w-full grid-cols-2 h-10 bg-neutral-100 p-1 rounded-lg mb-6">
+                            <TabsTrigger 
                                 value="open"
-                                className="flex flex-col gap-2 mb-4">
-                                <div className="flex items-center justify-between">
-                                    <h1 className="py-4 text-neutral-500">
-                                        Open position rules:
-                                    </h1>
-                                    <div
-                                        onClick={() =>
-                                            handleCreateNewRule({
-                                                type: "open",
-                                            })
-                                        }
-                                        className="custom-button flex justify-center cursor-pointer items-center gap-2">
-                                        <Plus size={16} />
-                                        <span className="text-sm">
-                                            New Open Rule
-                                        </span>
-                                    </div>
-                                </div>
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead className="w-[60%]">
-                                                Name
-                                            </TableHead>
-                                            <TableHead className="w-[30%]">
-                                                Priority
-                                            </TableHead>
-                                            <TableHead className="w-[10%]"></TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {openPositionRules.map((rule) => (
-                                            <NewRuleForDialog
-                                                key={rule.id}
-                                                rule={rule}
-                                                handleChangePriority={() =>
-                                                    handleChangePriority({
-                                                        id: rule.id,
-                                                        type: "open",
-                                                    })
-                                                }
-                                                handleChangeRuleName={(
-                                                    newName: string
-                                                ) =>
-                                                    handleChangeRuleName({
-                                                        id: rule.id,
-                                                        type: "open",
-                                                        newName,
-                                                    })
-                                                }
-                                                handleDeleteRule={() =>
-                                                    handleDeleteRule({
-                                                        id: rule.id,
-                                                        type: "open",
-                                                    })
-                                                }
-                                            />
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </TabsContent>
-                            <TabsContent
+                                className="data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all"
+                            >
+                                Open Rules
+                            </TabsTrigger>
+                            <TabsTrigger 
                                 value="close"
-                                className="flex flex-col gap-2 mb-4">
-                                <div className="flex items-center justify-between">
-                                    <h1 className="py-4 text-neutral-500">
-                                        Close position rules:
-                                    </h1>
-                                    <div
-                                        onClick={() =>
-                                            handleCreateNewRule({
-                                                type: "close",
-                                            })
-                                        }
-                                        className="custom-button flex justify-center cursor-pointer items-center gap-2">
-                                        <Plus size={16} />
-                                        <span className="text-sm">
-                                            New Close Rule
-                                        </span>
-                                    </div>
-                                </div>
+                                className="data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all"
+                            >
+                                Close Rules
+                            </TabsTrigger>
+                        </TabsList>
+
+                        <TabsContent value="open" className="mt-0 space-y-4 outline-none">
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-sm font-medium text-neutral-900">
+                                    Entry Conditions
+                                </h3>
+                                <button
+                                    onClick={() => handleCreateNewRule({ type: "open" })}
+                                    className="flex items-center gap-1.5 text-sm font-medium text-emerald-600 hover:text-emerald-700 transition-colors px-3 py-1.5 rounded-md hover:bg-emerald-50"
+                                >
+                                    <Plus size={14} />
+                                    Add Rule
+                                </button>
+                            </div>
+                            
+                            <div className="border rounded-lg overflow-hidden">
                                 <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead className="w-[60%]">
-                                                Name
-                                            </TableHead>
-                                            <TableHead className="w-[30%]">
-                                                Priority
-                                            </TableHead>
-                                            <TableHead className="w-[10%]"></TableHead>
+                                    <TableHeader className="bg-neutral-50">
+                                        <TableRow className="hover:bg-neutral-50 border-b-neutral-100">
+                                            <TableHead className="w-[55%] font-medium text-neutral-600 h-10">Rule Description</TableHead>
+                                            <TableHead className="w-[30%] font-medium text-neutral-600 h-10">Priority</TableHead>
+                                            <TableHead className="w-[15%] h-10"></TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {closePositionRules.map((rule) => (
-                                            <NewRuleForDialog
-                                                key={rule.id}
-                                                rule={rule}
-                                                handleChangePriority={() =>
-                                                    handleChangePriority({
-                                                        id: rule.id,
-                                                        type: "close",
-                                                    })
-                                                }
-                                                handleChangeRuleName={(
-                                                    newName: string
-                                                ) =>
-                                                    handleChangeRuleName({
-                                                        id: rule.id,
-                                                        type: "close",
-                                                        newName,
-                                                    })
-                                                }
-                                                handleDeleteRule={() =>
-                                                    handleDeleteRule({
-                                                        id: rule.id,
-                                                        type: "close",
-                                                    })
-                                                }
-                                            />
-                                        ))}
+                                        {openPositionRules.length === 0 ? (
+                                            <TableRow>
+                                                <TableCell colSpan={3} className="h-24 text-center text-neutral-500 text-sm">
+                                                    No rules added yet. Click &quot;Add Rule&quot; to start.
+                                                </TableCell>
+                                            </TableRow>
+                                        ) : (
+                                            openPositionRules.map((rule) => (
+                                                <NewRuleForDialog
+                                                    key={rule.id}
+                                                    rule={rule}
+                                                    handleChangePriority={() =>
+                                                        handleChangePriority({
+                                                            id: rule.id,
+                                                            type: "open",
+                                                        })
+                                                    }
+                                                    handleChangeRuleName={(newName: string) =>
+                                                        handleChangeRuleName({
+                                                            id: rule.id,
+                                                            type: "open",
+                                                            newName,
+                                                        })
+                                                    }
+                                                    handleDeleteRule={() =>
+                                                        handleDeleteRule({
+                                                            id: rule.id,
+                                                            type: "open",
+                                                        })
+                                                    }
+                                                />
+                                            ))
+                                        )}
                                     </TableBody>
                                 </Table>
-                            </TabsContent>
-                        </Tabs>
-                        <div className="flex gap-6 justify-end">
-                            <DialogClose asChild>
-                                <CustomButton isBlack={false}>
-                                    Cancel
-                                </CustomButton>
-                            </DialogClose>
-                            <CustomButton
-                                isBlack
-                                type="submit"
-                                disabled={submittingNewStrategy}
-                                onClick={strategyNameEditing ? handleEditStrategy : createStrategy}>
-                                {strategyNameEditing ? "Edit Strategy" : "Create a Strategy"}
-                            </CustomButton>
-                        </div>
-                    </form>
-                </DialogContent>
-            </Dialog>
-        </>
+                            </div>
+                        </TabsContent>
+
+                        <TabsContent value="close" className="mt-0 space-y-4 outline-none">
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-sm font-medium text-neutral-900">
+                                    Exit Conditions
+                                </h3>
+                                <button
+                                    onClick={() => handleCreateNewRule({ type: "close" })}
+                                    className="flex items-center gap-1.5 text-sm font-medium text-emerald-600 hover:text-emerald-700 transition-colors px-3 py-1.5 rounded-md hover:bg-emerald-50"
+                                >
+                                    <Plus size={14} />
+                                    Add Rule
+                                </button>
+                            </div>
+
+                            <div className="border rounded-lg overflow-hidden">
+                                <Table>
+                                    <TableHeader className="bg-neutral-50">
+                                        <TableRow className="hover:bg-neutral-50 border-b-neutral-100">
+                                            <TableHead className="w-[55%] font-medium text-neutral-600 h-10">Rule Description</TableHead>
+                                            <TableHead className="w-[30%] font-medium text-neutral-600 h-10">Priority</TableHead>
+                                            <TableHead className="w-[15%] h-10"></TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {closePositionRules.length === 0 ? (
+                                            <TableRow>
+                                                <TableCell colSpan={3} className="h-24 text-center text-neutral-500 text-sm">
+                                                    No rules added yet. Click &quot;Add Rule&quot; to start.
+                                                </TableCell>
+                                            </TableRow>
+                                        ) : (
+                                            closePositionRules.map((rule) => (
+                                                <NewRuleForDialog
+                                                    key={rule.id}
+                                                    rule={rule}
+                                                    handleChangePriority={() =>
+                                                        handleChangePriority({
+                                                            id: rule.id,
+                                                            type: "close",
+                                                        })
+                                                    }
+                                                    handleChangeRuleName={(newName: string) =>
+                                                        handleChangeRuleName({
+                                                            id: rule.id,
+                                                            type: "close",
+                                                            newName,
+                                                        })
+                                                    }
+                                                    handleDeleteRule={() =>
+                                                        handleDeleteRule({
+                                                            id: rule.id,
+                                                            type: "close",
+                                                        })
+                                                    }
+                                                />
+                                            ))
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                        </TabsContent>
+                    </Tabs>
+                </div>
+
+                <div className="p-6 pt-4 border-t border-neutral-100 bg-neutral-50/50 flex justify-end gap-3">
+                    <DialogClose asChild>
+                        <CustomButton isBlack={false} className="h-10 px-6">
+                            Cancel
+                        </CustomButton>
+                    </DialogClose>
+                    <CustomButton
+                        isBlack
+                        type="submit"
+                        disabled={submittingNewStrategy}
+                        onClick={strategyNameEditing ? handleEditStrategy : createStrategy}
+                        className="h-10 px-6"
+                    >
+                        {strategyNameEditing ? "Save Changes" : "Create Strategy"}
+                    </CustomButton>
+                </div>
+            </DialogContent>
+        </Dialog>
     );
 }

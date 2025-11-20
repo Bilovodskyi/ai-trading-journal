@@ -71,21 +71,11 @@ export const StrategyTable = pgTable(
             .notNull()
             .references(() => UserTable.id),
         strategyName: text("strategyName").notNull(),
-        openPositionRules: jsonb("open_position_rules")
-            .$type<Rule[]>()
-            .notNull()
-            .default([]),
-
-        closePositionRules: jsonb("close_position_rules")
-            .$type<Rule[]>()
-            .notNull()
-            .default([]),
-        createdAt: timestamp("created_at", { withTimezone: true })
-            .defaultNow()
-            .notNull(),
-        updatedAt: timestamp("updated_at", { withTimezone: true })
-            .defaultNow()
-            .notNull(),
+        description: text("description"),
+        openPositionRules: jsonb("open_position_rules").$type<Rule[]>().default([]).notNull(),
+        closePositionRules: jsonb("close_position_rules").$type<Rule[]>().default([]).notNull(),
+        createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+        updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
     },
     (table) => ({
         userIdIndex: index("strategy_user_id_idx").on(table.userId),
@@ -129,3 +119,27 @@ export const FeedbackTable = pgTable("feedbacks", {
         .defaultNow()
         .notNull(),
 });
+
+export const JournalTable = pgTable(
+    "journal",
+    {
+        id: uuid("id").primaryKey().defaultRandom(),
+        userId: text("user_id")
+            .notNull()
+            .references(() => UserTable.id),
+        date: text("date").notNull(), // Stored as YYYY-MM-DD
+        content: jsonb("content"),
+        createdAt: timestamp("created_at", { withTimezone: true })
+            .defaultNow()
+            .notNull(),
+        updatedAt: timestamp("updated_at", { withTimezone: true })
+            .defaultNow()
+            .notNull(),
+    },
+    (table) => ({
+        userIdDateIndex: index("journal_user_id_date_idx").on(
+            table.userId,
+            table.date
+        ),
+    })
+);
