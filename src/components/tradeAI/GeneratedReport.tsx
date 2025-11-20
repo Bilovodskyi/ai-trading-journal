@@ -190,7 +190,7 @@ export default function GeneratedReport({
                     <div className="flex gap-2 items-center">
                         <p className="p-3">
                             Claude{" "}
-                            <span className="text-zinc-500">3.7 sonnet</span>
+                            <span className="text-zinc-500">4.5 sonnet</span>
                         </p>
                     </div>
                 </div>

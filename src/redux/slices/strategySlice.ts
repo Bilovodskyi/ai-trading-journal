@@ -31,7 +31,7 @@ const strategiesSlice = createSlice({
             );
         },
         editStrategyInTheState: (state, action) => {
-            const { id, openPositionRules, closePositionRules, strategyName } = action.payload;
+            const { id, openPositionRules, closePositionRules, strategyName, description } = action.payload;
             state.strategies = state.strategies.map(strategy =>
                 strategy.id === id
                     ? {
@@ -39,6 +39,7 @@ const strategiesSlice = createSlice({
                         openPositionRules,
                         closePositionRules,
                         strategyName,
+                        description,
                     }
                     : strategy
             );

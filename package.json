@@ -36,6 +36,9 @@
         "@radix-ui/react-tabs": "^1.1.11",
         "@reduxjs/toolkit": "^2.5.0",
         "@stripe/stripe-js": "^6.1.0",
+        "@tiptap/extension-placeholder": "^3.11.0",
+        "@tiptap/react": "^3.11.0",
+        "@tiptap/starter-kit": "^3.11.0",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "date-fns": "^3.6.0",
@@ -61,6 +64,7 @@
         "zod": "^3.24.1"
     },
     "devDependencies": {
+        "@tailwindcss/typography": "^0.5.19",
         "@types/node": "^20",
         "@types/react": "^18",
         "@types/react-dom": "^18",

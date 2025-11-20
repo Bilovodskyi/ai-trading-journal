@@ -8,12 +8,7 @@ import {
 } from "@/components/ui/table";
 import { Strategy } from "@/types/strategies.types";
 import { Checkbox } from "../ui/checkbox";
-
-const priorityColors = {
-    high: "bg-sellWithOpacity text-sell",
-    medium: "bg-yellow-400 text-yellow-600 bg-opacity-50",
-    low: "bg-buyWithOpacity text-buy",
-};
+import { rulesStyle } from "./AddStrategyDialog";
 
 interface StrategyRulesProps {
     strategy: Strategy;
@@ -45,11 +40,16 @@ export default function StrategyRules({ strategy }: StrategyRulesProps) {
                                 </TableCell>
                                 <TableCell className="w-[30%] md:w-[25%]">
                                     <div
-                                        className={`${priorityColors[
-                                            rule.priority
-                                        ]
-                                            } px-3 p-1 rounded-lg w-fit flex-center`}>
-                                        &bull; {rule.priority}
+                                        className={`
+                                            inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium select-none
+                                            ${rulesStyle[rule.priority]}
+                                        `}
+                                    >
+                                        <span className={`w-1.5 h-1.5 rounded-full ${rule.priority === 'high' ? 'bg-rose-500' :
+                                                rule.priority === 'medium' ? 'bg-amber-500' :
+                                                    'bg-emerald-500'
+                                            }`} />
+                                        {rule.priority.charAt(0).toUpperCase() + rule.priority.slice(1)} Priority
                                     </div>
                                 </TableCell>
                             </TableRow>
@@ -80,11 +80,16 @@ export default function StrategyRules({ strategy }: StrategyRulesProps) {
                                 </TableCell>
                                 <TableCell className="w-[30%] md:w-[25%]">
                                     <div
-                                        className={`${priorityColors[
-                                            rule.priority
-                                        ]
-                                            } px-3 p-1 rounded-lg w-fit flex-center nowrap`}>
-                                        &bull; {rule.priority}
+                                        className={`
+                                            inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium select-none
+                                            ${rulesStyle[rule.priority]}
+                                        `}
+                                    >
+                                        <span className={`w-1.5 h-1.5 rounded-full ${rule.priority === 'high' ? 'bg-rose-500' :
+                                                rule.priority === 'medium' ? 'bg-amber-500' :
+                                                    'bg-emerald-500'
+                                            }`} />
+                                        {rule.priority.charAt(0).toUpperCase() + rule.priority.slice(1)} Priority
                                     </div>
                                 </TableCell>
                             </TableRow>

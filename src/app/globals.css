@@ -9,10 +9,10 @@
     --claude: #da7756;
     --claudeBackground: rgba(218, 119, 86, 0.1);
     --buy: #76b562;
-    --buyOpacity: rgba(118, 181, 98, 0.5);
+    --buyOpacity: rgba(118, 181, 98, 0.4);
     --buyLight: rgba(118, 181, 98, 0.2);
     --sell: #e96a5e;
-    --sellOpacity: rgba(233, 106, 94, 0.5);
+    --sellOpacity: rgba(233, 106, 94, 0.4);
     --sellLight: rgba(233, 106, 94, 0.2);
     --customBlue: #9999ff;
     --customOrange: #e16540;

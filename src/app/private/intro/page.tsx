@@ -16,7 +16,7 @@ const STEPS = [
     {
         title: "Step 1: Calendar",
         body: "See you trade history in a visual calendar.",
-        image: "/intro/intro-calendar.png",
+        image: "/intro/intro-calendar.svg",
     },
     {
         title: "Step 2: Add open and closed positions",
@@ -39,7 +39,12 @@ const STEPS = [
         image: "/intro/intro-history.png",
     },
     {
-        title: "Step 5: Get your AI report",
+        title: "Step 6: Journal page",
+        body: "Journal your thoughts and insights.",
+        image: "/intro/intro-journal.svg",
+    },
+    {
+        title: "Step 7: Get your AI report",
         body: "Get your AI report and improve your trading. Currently it's paid, but we're working on a free version.",
         video: "/intro/intro-ai-report.webm",
     },

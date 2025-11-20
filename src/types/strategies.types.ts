@@ -3,6 +3,7 @@ import { Rule } from "./dbSchema.types";
 export type Strategy = {
     id: string;
     strategyName: string;
+    description: string | null;
     openPositionRules: Rule[];
     closePositionRules: Rule[];
 };

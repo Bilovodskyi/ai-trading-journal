@@ -16,12 +16,14 @@ export async function saveStrategy({
     userId,
     id,
     strategyName,
+    description,
 }: {
     openPositionRules: Rule[];
     closePositionRules: Rule[];
     userId: string;
     id: string;
     strategyName: string;
+    description?: string;
 }) {
     const { userId: userIdFromAuth } = await auth();
     if (userIdFromAuth !== userId) return null;
@@ -45,6 +47,7 @@ export async function saveStrategy({
             openPositionRules,
             closePositionRules,
             strategyName,
+            description,
         });
 
         return {
@@ -84,6 +87,7 @@ export async function getAllStrategies(
             .select({
                 id: StrategyTable.id,
                 strategyName: StrategyTable.strategyName,
+                description: StrategyTable.description,
                 openPositionRules: StrategyTable.openPositionRules,
                 closePositionRules: StrategyTable.closePositionRules,
             })
@@ -131,12 +135,14 @@ export async function editStrategy({
     userId,
     id,
     strategyName,
+    description,
 }: {
     openPositionRules: Rule[];
     closePositionRules: Rule[];
     userId: string;
     id: string;
     strategyName: string;
+    description?: string;
 }) {
     const { userId: userIdFromAuth } = await auth();
     if (userIdFromAuth !== userId) return null;
@@ -158,6 +164,7 @@ export async function editStrategy({
             openPositionRules,
             closePositionRules,
             strategyName,
+            description,
         }).where(eq(StrategyTable.id, id));
 
         return {

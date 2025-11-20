@@ -197,22 +197,19 @@ export default function PrivateLayoutClient({
                                                     your performance
                                                 </span>
                                             </Link>
-                                            <li className="hover:bg-zinc-100 px-3 py-2 rounded-md">
-                                                <div className="flex gap-4 items-center">
-                                                    <div className="flex gap-2 items-center">
-                                                        <BsJournalCheck />
-                                                        <h1>Journal</h1>
-                                                    </div>
-                                                    <span className="text-[.8rem] bg-gradient-to-r from-emerald-400 to-blue-300 text-transparent bg-clip-text">
-                                                        Coming soon...
-                                                    </span>
+                                            <Link
+                                                href="/private/journal"
+                                                className="hover:bg-zinc-100 px-3 py-2 rounded-md cursor-pointer">
+                                                <div className="flex gap-2 items-center">
+                                                    <BsJournalCheck />
+                                                    <h1>Journal</h1>
                                                 </div>
                                                 <span className="leading-none text-[.85rem] text-zinc-400">
                                                     Journal your thoughts.
                                                     Summarize your days, weeks,
                                                     and months.
                                                 </span>
-                                            </li>
+                                            </Link>
                                         </ul>
                                     </NavigationMenuContent>
                                 </NavigationMenuItem>
