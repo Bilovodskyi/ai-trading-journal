@@ -18,6 +18,7 @@ import Link from "next/link";
 import HomePageAi from "./HomePageAI";
 import { SiClaude } from "react-icons/si";
 import HomePageMobileAiPage from "./HomePageMobileAI";
+import HomePageJournal from "./HomePageJournal";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
@@ -363,6 +364,7 @@ export default function HomePage() {
             <HomePageAi />
             <HomePageMobileAiPage />
             <HomePageCalendar />
+            <HomePageJournal />
             <HomePageReviews />
             <HomePageFooter />
         </div>

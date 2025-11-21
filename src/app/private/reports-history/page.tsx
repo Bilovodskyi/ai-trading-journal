@@ -17,11 +17,9 @@ import {
 } from "@/server/actions/archive";
 import { ReportsEntry } from "@/types/tradeAI.types";
 import { useUser } from "@clerk/nextjs";
-import { ChevronLeft, ChevronRight, Star } from "lucide-react";
-import Image from "next/image";
+import { Bot, ChevronLeft, ChevronRight, MessageSquare, Star, Trash2 } from "lucide-react";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
-import { MdDelete } from "react-icons/md";
 import { toast } from "sonner";
 
 export default function Page() {
@@ -135,166 +133,162 @@ export default function Page() {
         }
     };
 
-    console.log(paginatedReports);
-
     return (
-        <div
-            className={`flex flex-col ${
-                totalPages > 1 ? "justify-between" : "justify-start"
-            } gap-8 2xl:gap-20 py-6 2xl:py-16 px-4 md:px-16 2xl:px-36 2xl:mx-[64px] h-full`}>
-            <div className="flex max-md:flex-col gap-4 md:gap-0 items-center justify-between">
-                <span className="text-zinc-500 text-[.9rem] px-4 py-2 border border-gray-200 rounded-lg ">
-                    View the history of your saved reports. You can ask the AI
-                    more questions by picking up where you left off.
-                </span>
-                <div className="flex max-lg:flex-col gap-4 w-full lg:w-auto">
+        <div className="flex flex-col gap-8 2xl:gap-12 py-8 px-4 md:px-8 lg:px-12 max-w-[1600px] mx-auto w-full h-full">
+            {/* Header Section */}
+            <div className="flex flex-col md:flex-row gap-6 items-start md:items-center justify-between">
+                <div className="space-y-1">
+                    <h1 className="text-2xl font-bold text-zinc-900">Reports History</h1>
+                    <p className="text-zinc-500 text-sm max-w-xl">
+                        View your saved AI analysis reports. Pick up where you left off or review past insights.
+                    </p>
+                </div>
+                
+                <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
                     <CustomButton
                         isBlack={false}
                         onClick={() => setShowOnlyFavorite((prev) => !prev)}>
-                        <div className="flex gap-2 items-center justify-center">
+                        <div className="flex gap-2 items-center justify-center px-2">
                             <Star
-                                size={20}
-                                color={
-                                    showOnlyFavorite
-                                        ? "var(--customYellow)"
-                                        : "#3d3929"
-                                }
+                                size={16}
+                                className={showOnlyFavorite ? "fill-yellow-400 text-yellow-400" : "text-zinc-700"}
                             />
-                            Favorite
+                            <span className={showOnlyFavorite ? "text-zinc-900 font-medium" : "text-zinc-600"}>
+                                Favorites
+                            </span>
                         </div>
                     </CustomButton>
                     <Select
                         value={sorted}
                         onValueChange={(value) => setSorted(value)}>
-                        <SelectTrigger className="border border-gray-200 rounded-md w-full md:w-[160px] px-4">
+                        <SelectTrigger className="w-full sm:w-[180px] bg-white border-zinc-200">
                             <SelectValue placeholder="Sort by time" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectGroup>
-                                <SelectItem value="desc">
-                                    Newest first
-                                </SelectItem>
-                                <SelectItem value="asc">
-                                    Oldest first
-                                </SelectItem>
+                                <SelectItem value="desc">Newest first</SelectItem>
+                                <SelectItem value="asc">Oldest first</SelectItem>
                             </SelectGroup>
                         </SelectContent>
                     </Select>
                 </div>
             </div>
-            <div className="grid grid-cols-3 grid-rows-3 gap-x-4 2xl:gap-x-8 gap-y-4 2xl:gap-y-8 pb-[24px] lg:pb-0">
-                {paginatedReports ? (
-                    paginatedReports?.map((report) => (
-                        <Link
-                            className="relative max-h-[170px] col-span-3 lg:col-span-1 row-span-1 border border-gray-200 md:hover:border-gray-400 duration-300 rounded-lg py-4 px-6 flex flex-col gap-2 shadow-md overflow-hidden"
-                            href={`/private/reports-history/${report.reportId}`}
-                            key={report.reportId}>
-                            <div className="pointer-events-none absolute -inset-px z-2 overflow-hidden">
-                                <div className="absolute right-[1rem] top-0 size-[7rem] -translate-y-[20%] translate-x-1/3 transform-gpu rounded-full bg-[radial-gradient(theme(colors.sky.300),transparent)] opacity-5 blur-lg"></div>
-                                <div className="absolute right-[15rem] top-0 size-[10rem] -translate-y-[50%] translate-x-1/3 transform-gpu rounded-full bg-[radial-gradient(theme(colors.emerald.300),transparent)] opacity-5 blur-lg"></div>
-                                <div className="absolute right-[10rem] top-0 size-[12rem] translate-y-[40%] translate-x-1/3 transform-gpu rounded-full bg-[radial-gradient(theme(colors.orange.400),transparent)] opacity-5 blur-lg"></div>
-                            </div>
-                            <Image
-                                src="/logo-watermark.png"
-                                height={270}
-                                width={270}
-                                alt="logo"
-                                className="absolute opacity-5 right-0 top-0"
-                            />
-                            <div className="flex justify-between items-center">
-                                <div className="flex gap-4 items-center">
-                                    <Image
-                                        src="/logo.svg"
-                                        alt="logo"
-                                        width={30}
-                                        height={30}
-                                    />
-                                    <span className="">Your report</span>
-                                </div>
 
-                                <MdDelete
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        e.preventDefault();
-                                        deleteReport(report.reportId);
-                                    }}
-                                    className="text-[1.2rem] text-sell cursor-pointer hover:opacity-85 transition-opacity duration-200 z-20"
-                                />
+            {/* Reports Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {paginatedReports ? (
+                    paginatedReports.map((report) => (
+                        <Link
+                            href={`/private/reports-history/${report.reportId}`}
+                            key={report.reportId}
+                            className="group relative flex flex-col bg-white rounded-2xl shadow-sm hover:shadow-md border border-zinc-200 overflow-hidden transition-all duration-200"
+                        >
+                            {/* Window Header */}
+                            <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100 bg-zinc-50/80 backdrop-blur-sm rounded-t-2xl">
+                                <div className="flex gap-1.5">
+                                    <div className="w-2.5 h-2.5 rounded-full bg-red-400/80" />
+                                    <div className="w-2.5 h-2.5 rounded-full bg-amber-400/80" />
+                                    <div className="w-2.5 h-2.5 rounded-full bg-green-400/80" />
+                                </div>
+                                <div className="flex items-center gap-1">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            e.preventDefault();
+                                            addDeleteFavorite(report.reportId);
+                                        }}
+                                        className="p-1.5 hover:bg-white hover:shadow-sm rounded-md transition-all duration-200 group/star"
+                                    >
+                                        <Star
+                                            size={14}
+                                            className={`transition-colors ${report.isFavorite ? "fill-yellow-400 text-yellow-400" : "text-zinc-400 group-hover/star:text-yellow-400"}`}
+                                        />
+                                    </button>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            e.preventDefault();
+                                            deleteReport(report.reportId);
+                                        }}
+                                        className="p-1.5 hover:bg-red-50 hover:text-red-500 rounded-md transition-all duration-200 text-zinc-400"
+                                    >
+                                        <Trash2 size={14} />
+                                    </button>
+                                </div>
                             </div>
-                            <div
-                                className="flex gap-2 items-center py-1 px-2 border border-gray-200 hover:border-gray-400 duration-200 rounded-md w-fit"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    e.preventDefault();
-                                    addDeleteFavorite(report.reportId);
-                                }}>
-                                <Star
-                                    size={14}
-                                    color={
-                                        report.isFavorite
-                                            ? "var(--customYellow)"
-                                            : "#71717a"
-                                    }
-                                />
-                                <span className="text-[.9rem] text-zinc-500">
-                                    Favorite
-                                </span>
-                            </div>
-                            <div className="flex gap-4 items-center">
-                                <span className="text-zinc-500 text-[.8rem]">
-                                    Generated on:
-                                </span>
-                                <span className="text-[.9rem]">
-                                    {report.createdAt}
-                                </span>
-                            </div>
-                            <div className="flex gap-4 items-center">
-                                <span className="text-zinc-500 text-[.8rem]">
-                                    Messages:
-                                </span>
-                                <span className="text-[.9rem]">
-                                    {report.numberOfMessages}
-                                </span>
+
+                            {/* Content */}
+                            <div className="p-6 space-y-5">
+                                <div className="flex items-start justify-between gap-4">
+                                    <div>
+                                        <h3 className="font-semibold text-zinc-900 text-lg leading-tight">AI Analysis Report</h3>
+                                        <p className="text-xs text-zinc-400 mt-1.5 font-medium uppercase tracking-wide">
+                                            {new Date(report.createdAt).toLocaleDateString(undefined, {
+                                                year: 'numeric',
+                                                month: 'short',
+                                                day: 'numeric',
+                                            })}
+                                            <span className="mx-1.5">•</span>
+                                            {new Date(report.createdAt).toLocaleTimeString(undefined, {
+                                                hour: '2-digit',
+                                                minute: '2-digit'
+                                            })}
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                <div className="flex items-center gap-2.5 text-sm text-zinc-600 bg-zinc-50 px-3 py-2.5 rounded-lg border border-zinc-100">
+                                    <MessageSquare size={16} className="text-zinc-400" />
+                                    <span className="font-medium">{report.numberOfMessages}</span>
+                                    <span className="text-zinc-400">messages in conversation</span>
+                                </div>
                             </div>
                         </Link>
                     ))
                 ) : (
-                    <div className="min-h-[400px] col-span-3 row-span-3 flex items-start justify-center">
+                    <div className="col-span-full flex items-center justify-center min-h-[300px]">
                         <CustomLoading />
                     </div>
                 )}
+                
                 {paginatedReports?.length === 0 && (
-                    <div className="min-h-[400px] col-span-3 row-span-3 flex items-center justify-center text-zinc-500">
-                        Your reports archive is empty. Save your first report!
+                    <div className="col-span-full flex flex-col items-center justify-center min-h-[400px] text-zinc-500 bg-zinc-50/50 rounded-3xl border border-dashed border-zinc-200">
+                        <div className="w-16 h-16 bg-zinc-100 rounded-full flex items-center justify-center mb-4">
+                            <Bot size={32} className="text-zinc-300" />
+                        </div>
+                        <p className="text-lg font-medium text-zinc-900">No reports found</p>
+                        <p className="text-sm text-zinc-400 mt-1">Start a new analysis to see it here.</p>
                     </div>
                 )}
             </div>
+
+            {/* Pagination */}
             {totalPages > 1 && (
-                <div className="flex justify-center items-center gap-4 mt-4 pb-[24px] lg:pb-0">
+                <div className="flex justify-center items-center gap-4 pb-8">
                     <button
                         onClick={goToPreviousPage}
                         disabled={currentPage === 1}
-                        className={`flex gap-2 items-center px-4 py-2 text-[.9rem] rounded-md ${
+                        className={`flex gap-2 items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                             currentPage === 1
-                                ? " text-gray-400 cursor-not-allowed"
-                                : ""
+                                ? "text-zinc-300 cursor-not-allowed"
+                                : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
                         }`}>
-                        <ChevronLeft />
-                        Prev
+                        <ChevronLeft size={16} />
+                        Previous
                     </button>
-                    <span className="text-[.9rem]">
-                        Page {currentPage} of {totalPages}
+                    <span className="text-sm font-medium text-zinc-900 bg-zinc-100 px-3 py-1 rounded-md">
+                        {currentPage} <span className="text-zinc-400 mx-1">/</span> {totalPages}
                     </span>
                     <button
                         onClick={goToNextPage}
                         disabled={currentPage === totalPages}
-                        className={`flex gap-2 items-center px-4 py-2 text-[.9rem] rounded-md ${
+                        className={`flex gap-2 items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                             currentPage === totalPages
-                                ? " text-gray-400 cursor-not-allowed"
-                                : ""
+                                ? "text-zinc-300 cursor-not-allowed"
+                                : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
                         }`}>
                         Next
-                        <ChevronRight />
+                        <ChevronRight size={16} />
                     </button>
                 </div>
             )}
