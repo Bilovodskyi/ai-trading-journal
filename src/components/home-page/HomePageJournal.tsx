@@ -1,5 +1,4 @@
-import { Button } from "@/components/ui/button";
-import { ArrowRight, Book, Calendar, CheckCircle2, PenLine } from "lucide-react";
+import { Book, Calendar, CheckCircle2, PenLine } from "lucide-react";
 import Link from "next/link";
 import { CustomButton } from "../CustomButton";
 
@@ -60,7 +59,7 @@ const HomePageJournal = () => {
                                 </div>
                                 <div className="ml-4 flex items-center gap-2 text-xs text-zinc-400 bg-white px-3 py-1 rounded-md border border-zinc-100 shadow-sm">
                                     <Calendar className="w-3 h-3" />
-                                    <span>Today's Entry</span>
+                                    <span>Today&apos;s Entry</span>
                                 </div>
                             </div>
 
@@ -76,7 +75,7 @@ const HomePageJournal = () => {
 
                                 <div className="space-y-4">
                                     <div className="p-4 rounded-lg bg-orange-50 border border-orange-100 text-orange-800 text-sm">
-                                        💡 <strong>Note to self:</strong> Don't chase the opening range breakout today. Wait for the retest.
+                                        💡 <strong>Note to self:</strong> Don&apos;t chase the opening range breakout today. Wait for the retest.
                                     </div>
 
                                     <div className="space-y-2">
@@ -91,7 +90,7 @@ const HomePageJournal = () => {
                                     </div>
 
                                     <div className="pl-4 border-l-2 border-zinc-200 italic text-zinc-500">
-                                        "The goal of a successful trader is to make the best trades. Money is secondary."
+                                        &quot;The goal of a successful trader is to make the best trades. Money is secondary.&quot;
                                     </div>
                                 </div>
 
