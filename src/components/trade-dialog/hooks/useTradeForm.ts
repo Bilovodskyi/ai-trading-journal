@@ -65,6 +65,9 @@ export const useTradeForm = ({ editMode = false, existingTrade, day, onRequestCl
             strategyId: existingTrade.strategyId || null,
             appliedOpenRules: existingTrade.appliedOpenRules || [],
             appliedCloseRules: existingTrade.appliedCloseRules || [],
+            closeEvents: existingTrade.closeEvents || [],
+            openOtherDetails: existingTrade.openOtherDetails || {},
+            closeOtherDetails: existingTrade.closeOtherDetails || {},
             result: existingTrade.result || "",
             notes: existingTrade.notes || "",
             rating: existingTrade.rating || 0,
@@ -87,6 +90,9 @@ export const useTradeForm = ({ editMode = false, existingTrade, day, onRequestCl
             strategyId: null,
             appliedOpenRules: [],
             appliedCloseRules: [],
+            closeEvents: [],
+            openOtherDetails: {},
+            closeOtherDetails: {},
             result: "",
             notes: "",
             rating: 0,
@@ -165,11 +171,50 @@ export const useTradeForm = ({ editMode = false, existingTrade, day, onRequestCl
             }
         }
 
-        // Auto-set isActiveTrade based on closeDate
-        const updatedTradeData = {
-            ...baseData,
-            isActiveTrade: !baseData.closeDate || baseData.closeDate === ""
-        };
+        // Calculate remaining quantity (original quantity - already sold in closeEvents)
+        const originalQty = Number(existingTrade?.quantity || baseData.quantity) || 0;
+        // Use form's closeEvents (from baseData) which is synced with Redux, not stale prop
+        const existingCloseEvents = baseData.closeEvents || existingTrade?.closeEvents || [];
+        const alreadySoldQty = existingCloseEvents.reduce((sum, event) => sum + (event.quantitySold || 0), 0);
+        const remainingQty = originalQty - alreadySoldQty;
+        const currentSoldQty = Number(baseData.quantitySold) || 0;
+
+        // Determine if this is a partial close
+        const isPartialClose = editMode && existingTrade && hasCloseDate && currentSoldQty > 0 && currentSoldQty < remainingQty;
+
+        let updatedTradeData = { ...baseData };
+
+        if (isPartialClose) {
+            // PARTIAL CLOSE: Add to closeEvents array, keep trade open
+            const newCloseEvent = {
+                id: uuidv4(),
+                date: baseData.closeDate || "",
+                time: baseData.closeTime || "12:30",
+                quantitySold: currentSoldQty,
+                sellPrice: Number(baseData.sellPrice) || 0,
+                result: Number(baseData.result) || 0,
+            };
+
+            updatedTradeData = {
+                ...baseData,
+                closeEvents: [...existingCloseEvents, newCloseEvent],
+                // Clear close fields to keep trade open
+                closeDate: "",
+                closeTime: "",
+                sellPrice: "",
+                quantitySold: "",
+                result: "",
+                isActiveTrade: true,
+            };
+
+            toast.success(`Partial close recorded! ${remainingQty - currentSoldQty} units remaining.`);
+        } else {
+            // FULL CLOSE or regular update
+            updatedTradeData = {
+                ...baseData,
+                isActiveTrade: !baseData.closeDate || baseData.closeDate === ""
+            };
+        }
 
         try {
             let result;

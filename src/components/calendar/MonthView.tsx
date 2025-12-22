@@ -13,6 +13,7 @@ import { TradeDialog } from "../trade-dialog";
 import { Sheet, SheetContent, SheetTrigger } from "../ui/sheet";
 import { getPlural } from "@/lib/utils";
 import { TradeList } from "./TradeList";
+import { getClosedTradesForDay } from "@/features/calendar/getClosedTradesForDay";
 import { useEffect, useState } from "react";
 import { getJournalDates } from "@/server/actions/journal";
 import { FileText } from "lucide-react";
@@ -36,6 +37,11 @@ export default function MonthView() {
     useEffect(() => {
         const fetchJournalDates = async () => {
             const dates = await getJournalDates();
+            // Guard against undefined response
+            if (!dates || !Array.isArray(dates)) {
+                setJournalDates(new Set());
+                return;
+            }
             // Convert YYYY-MM-DD to DD-MM-YYYY to match calendar format
             const formattedDates = new Set(
                 dates.map((date) => dayjs(date).format("DD-MM-YYYY"))
@@ -256,13 +262,9 @@ export default function MonthView() {
                                                         )}
                                                     </div>
                                                 </HoverCardTrigger>
-                                                <HoverCardContent className="w-[420px] space-y-4">
+                                                <HoverCardContent className="w-[420px] space-y-4 px-3 py-2">
                                                     <TradeList
-                                                        trades={allTrades.filter(
-                                                            (t) =>
-                                                                dayjs(t.closeDate).format("DD-MM-YYYY") ===
-                                                                day.format("DD-MM-YYYY")
-                                                        )}
+                                                        displayItems={getClosedTradesForDay(allTrades, day.format("DD-MM-YYYY"))}
                                                         title="Closed Trades"
                                                         type="closed"
                                                     />

@@ -1,4 +1,4 @@
-import { Rule } from "@/types/dbSchema.types";
+import { Rule, CloseEvent } from "@/types/dbSchema.types";
 import { relations } from "drizzle-orm";
 import {
     boolean,
@@ -21,6 +21,8 @@ export const UserTable = pgTable("user", {
     onboardingCompleted: boolean("onboarding_completed")
         .notNull()
         .default(false),
+    openCustomFieldNames: jsonb("open_custom_field_names").$type<string[]>().default([]),
+    closeCustomFieldNames: jsonb("close_custom_field_names").$type<string[]>().default([]),
 });
 
 export const TradeTable = pgTable(
@@ -34,10 +36,10 @@ export const TradeTable = pgTable(
         closeDate: text("closeDate"),
         closeTime: text("closeTime"),
         isActiveTrade: boolean("isActiveTrade").default(true).notNull(),
-        instrumentName: text("instrumentName").notNull(),
+        instrumentName: text("instrumentName"),
         symbolName: text("symbolName").notNull(),
         entryPrice: text("entryPrice"),
-        deposit: text("deposit").notNull(),
+        deposit: text("deposit"),
         result: text("result"),
         totalCost: text("totalCost"),
         quantity: text("quantity"),
@@ -51,6 +53,9 @@ export const TradeTable = pgTable(
         }),
         appliedOpenRules: jsonb("applied_open_rules").$type<Rule[]>(),
         appliedCloseRules: jsonb("applied_close_rules").$type<Rule[]>(),
+        closeEvents: jsonb("close_events").$type<CloseEvent[]>(),
+        openOtherDetails: jsonb("open_other_details").$type<Record<string, string>>(),
+        closeOtherDetails: jsonb("close_other_details").$type<Record<string, string>>(),
     },
     (table) => ({
         userIdCloseDateIndex: index("userIdCloseDateIndex").on(

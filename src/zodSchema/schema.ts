@@ -7,6 +7,15 @@ const ruleSchema = z.object({
     priority: z.enum(["low", "medium", "high"]),
 });
 
+const closeEventSchema = z.object({
+    id: z.string(),
+    date: z.string(),
+    time: z.string(),
+    quantitySold: z.number(),
+    sellPrice: z.number(),
+    result: z.number(),
+});
+
 export const newTradeFormSchema = z.object({
     positionType: z.string().min(1, { message: "Position Type is required." }),
     openDate: z.string().min(1, { message: "Open date is required." }),
@@ -16,21 +25,24 @@ export const newTradeFormSchema = z.object({
     isActiveTrade: z.boolean().default(true),
     deposit: z
         .string()
-        .min(1, { message: "Deposit is required." })
-        .regex(/^[0-9]+$/, { message: "Only positive numbers are allowed." }),
+        .optional()
+        .refine((val) => {
+            if (!val || val === "") return true;
+            return /^[0-9]+(\.[0-9]+)?$/.test(val);
+        }, {
+            message: "Only positive numbers are allowed.",
+        }),
 
     result: z
         .string()
         .optional()
         .refine((val) => {
             if (!val || val === "") return true; // Allow empty for optional field
-            return /^-?[0-9]+$/.test(val);
+            return /^-?[0-9]+(\.[0-9]+)?$/.test(val);
         }, {
             message: "Only numbers are allowed.",
         }),
-    instrumentName: z
-        .string()
-        .min(1, { message: "Instrument name is required." }),
+    instrumentName: z.string().optional(),
     symbolName: z.string().min(1, { message: "Symbol name is required." }),
     entryPrice: z
         .string()
@@ -84,6 +96,9 @@ export const newTradeFormSchema = z.object({
     strategyId: z.string().optional().nullable(),
     appliedOpenRules: z.array(ruleSchema).optional().default([]),
     appliedCloseRules: z.array(ruleSchema).optional().default([]),
+    closeEvents: z.array(closeEventSchema).optional().default([]),
+    openOtherDetails: z.record(z.string(), z.string()).optional().default({}),
+    closeOtherDetails: z.record(z.string(), z.string()).optional().default({}),
     notes: z.string().optional(),
     rating: z
         .number()

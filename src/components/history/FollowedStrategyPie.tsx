@@ -10,7 +10,7 @@ export const FollowedStrategyPie = ({ percentage = 65 }) => {
     const COLORS = ["var(--buy)", "var(--sell)"];
 
     return (
-        <div className="h-8 flex items-center justify-center relative">
+        <div className="w-8 h-8 flex items-center justify-center relative">
             <ResponsiveContainer width="100%" height="100%">
                 <PieChart >
                     <Pie

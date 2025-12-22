@@ -47,9 +47,9 @@ export const sortTrades = ({
     }
     const sortedTrades = [...filtered].sort((a, b) => {
         switch (sortBy) {
-            case "instrumentName":
+            case "symbolName":
             case "positionType":
-                return a[sortBy].localeCompare(b[sortBy]);
+                return (a[sortBy] || "").localeCompare(b[sortBy] || "");
 
             case "openDate":
             case "closeDate": {
