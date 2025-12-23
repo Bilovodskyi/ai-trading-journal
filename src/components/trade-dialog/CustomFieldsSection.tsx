@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 import { Plus, X, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
@@ -80,8 +80,10 @@ export const CustomFieldsSection = ({
             // Remove from user settings
             const result = await removeCustomFieldName(fieldType, fieldName);
             if (result.success) {
-                // Remove from form values
-                const { [fieldName]: _, ...rest } = otherDetails;
+                // Remove from form values using Object.entries filter
+                const rest = Object.fromEntries(
+                    Object.entries(otherDetails).filter(([key]) => key !== fieldName)
+                );
                 setValue(fieldKey, rest, { shouldDirty: true });
                 onFieldNamesChange?.();
             }
@@ -205,7 +207,7 @@ export const CustomFieldsSection = ({
                     {/* Help text */}
                     {allFieldNames.length === 0 && (
                         <p className="text-xs text-zinc-400">
-                            Add custom fields to track additional details. They'll appear on all new trades.
+                            Add custom fields to track additional details. They&apos;ll appear on all new trades.
                         </p>
                     )}
                 </div>

@@ -44,8 +44,6 @@ export const CloseDetailsTab = ({
     // Watch values for UI display and validation
     const quantityValue = watch("quantity");
     const quantitySoldValue = watch("quantitySold");
-    const closeDateValue = watch("closeDate");
-    const resultValue = watch("result");
 
     // Calculate remaining quantity from closeEvents
     const originalQty = Number(quantityValue) || 0;
@@ -66,11 +64,6 @@ export const CloseDetailsTab = ({
     const quantitySoldNum = Number(quantitySoldValue) || 0;
     const isPartialClose = quantitySoldNum > 0 && quantitySoldNum < remainingQty;
     const exceedsQuantity = quantitySoldNum > remainingQty && remainingQty > 0;
-
-    // Check if both closeDate and result are filled (for showing warning)
-    const hasCloseDate = closeDateValue && closeDateValue.trim() !== "";
-    const hasResult = resultValue && resultValue.trim() !== "";
-    const missingFields = (hasCloseDate && !hasResult) || (!hasCloseDate && hasResult);
 
     return (
         <div className="flex flex-col gap-4">

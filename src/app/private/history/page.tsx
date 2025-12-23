@@ -5,17 +5,8 @@ import { useAppSelector } from "@/redux/store";
 import { Trades } from "@/types";
 import { useEffect, useState } from "react";
 
-import { getCapital } from "@/server/actions/user";
 import { OpenTradesTable } from "@/components/history/OpenTradesTable";
 import { CloseTradesTable } from "@/components/history/CloseTradesTable";
-
-// Helper to calculate remaining quantity for a trade
-const getRemainingQty = (trade: Trades): number => {
-    const originalQty = Number(trade.quantity) || 0;
-    const closeEvents = trade.closeEvents || [];
-    const soldQty = closeEvents.reduce((sum, event) => sum + (event.quantitySold || 0), 0);
-    return originalQty - soldQty;
-};
 
 // Helper to calculate total P/L from closeEvents
 const getPartialClosesTotal = (trade: Trades): number => {
@@ -26,7 +17,6 @@ const getPartialClosesTotal = (trade: Trades): number => {
 export default function Page() {
     const [sortedTrades, setSortedTrades] = useState<Trades[]>([]);
     const [total, setTotal] = useState<number>(0);
-    const [startCapital, setStartCapital] = useState<string | null>(null);
 
     const trades = useAppSelector((state) => state.tradeRecords.listOfTrades);
     const filteredTrades = useAppSelector(
@@ -39,17 +29,6 @@ export default function Page() {
     const activeTab = useAppSelector((state) => state.history.activeTab);
 
     const tradesToSort = filteredTrades || trades || [];
-
-    useEffect(() => {
-        async function fetchData() {
-            const response = await getCapital();
-            if (response && typeof response === "string") {
-                setStartCapital(response);
-            }
-        }
-
-        fetchData();
-    }, []);
 
     useEffect(() => {
         const result = sortTrades({
@@ -71,7 +50,7 @@ export default function Page() {
         
         setSortedTrades(result);
         setTotal(reducedTotal);
-    }, [sortBy, timeframe, trades, filteredTrades]);
+    }, [sortBy, timeframe, tradesToSort]);
 
     // Fully closed trades: have closeDate
     const closedTrades = sortedTrades
@@ -84,8 +63,12 @@ export default function Page() {
             const dateDiff = new Date(b.closeDate).getTime() - new Date(a.closeDate).getTime();
             if (dateDiff !== 0) return dateDiff;
             // If same date, sort by time
-            const aMinutes = a.closeTime ? a.closeTime.split(":").reduce((h, m) => Number(h) * 60 + Number(m), 0) : 0;
-            const bMinutes = b.closeTime ? b.closeTime.split(":").reduce((h, m) => Number(h) * 60 + Number(m), 0) : 0;
+            const parseTime = (time: string) => {
+                const parts = time.split(":");
+                return Number(parts[0] || 0) * 60 + Number(parts[1] || 0);
+            };
+            const aMinutes = a.closeTime ? parseTime(a.closeTime) : 0;
+            const bMinutes = b.closeTime ? parseTime(b.closeTime) : 0;
             return bMinutes - aMinutes;
         });
 
@@ -94,13 +77,6 @@ export default function Page() {
         const isNotClosed = !trade.closeDate || trade.closeDate === "";
         return isNotClosed;
     });
-
-    // Trades with partial closes that are still open (for showing in open section with partial badge)
-    const openTradesWithRemainingQty = openTrades.map(trade => ({
-        ...trade,
-        remainingQty: getRemainingQty(trade),
-        hasPartialCloses: (trade.closeEvents?.length || 0) > 0,
-    }));
 
     if (closedTrades.length === 0 && openTrades.length === 0) {
         return (
@@ -130,7 +106,7 @@ export default function Page() {
 
             {activeTab === "closedTrades" && (
                 closedTrades.length > 0 ? (
-                    <CloseTradesTable trades={closedTrades} startCapital={startCapital} total={total} />
+                    <CloseTradesTable trades={closedTrades} total={total} />
                 ) : (
                     <div className="flex items-center justify-center h-[60vh]">
                         <div className="border border-zinc-200 rounded-lg p-8 text-center">

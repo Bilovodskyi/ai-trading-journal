@@ -99,7 +99,7 @@ export const StrategyTab = ({
             {selectedStrategy && (
                 <div className="border border-zinc-200 rounded-lg p-4">
                     <h3 className="text-sm font-medium text-zinc-700 mb-3">
-                        Checklist for "{selectedStrategy.strategyName}"
+                        Checklist for &quot;{selectedStrategy.strategyName}&quot;
                     </h3>
                     <StrategyRules
                         strategy={selectedStrategy}

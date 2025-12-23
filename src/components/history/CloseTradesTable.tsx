@@ -32,13 +32,11 @@ type ClosedTrade = Trades & {
 
 type CloseTradesTableProps = {
     trades: ClosedTrade[];
-    startCapital: string | null;
     total: number;
 };
 
 export const CloseTradesTable = ({
     trades,
-    startCapital,
     total,
 }: CloseTradesTableProps) => {
     const [strategyDialogOpen, setStrategyDialogOpen] = useState(false);
