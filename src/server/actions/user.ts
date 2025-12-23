@@ -149,3 +149,115 @@ export async function completeOnboarding() {
     }
     await db.update(UserTable).set({ onboardingCompleted: true }).where(eq(UserTable.id, userId));
 }
+
+// Custom Field Names Management
+export async function getCustomFieldNames(): Promise<{
+    openFields: string[];
+    closeFields: string[];
+} | { error: boolean }> {
+    const { userId } = await auth();
+    if (!userId) {
+        return { error: true };
+    }
+
+    try {
+        const user = await db.query.UserTable.findFirst({
+            where: eq(UserTable.id, userId),
+        });
+
+        return {
+            openFields: (user?.openCustomFieldNames as string[]) || [],
+            closeFields: (user?.closeCustomFieldNames as string[]) || [],
+        };
+    } catch (err) {
+        console.error("Error getting custom field names:", err);
+        return { error: true };
+    }
+}
+
+export async function addCustomFieldName(
+    type: "open" | "close",
+    fieldName: string
+): Promise<{ success: boolean; error?: string }> {
+    const { userId } = await auth();
+    if (!userId) {
+        return { success: false, error: "Not authenticated" };
+    }
+
+    try {
+        const user = await db.query.UserTable.findFirst({
+            where: eq(UserTable.id, userId),
+        });
+
+        if (!user) {
+            return { success: false, error: "User not found" };
+        }
+
+        const currentFields = type === "open"
+            ? (user.openCustomFieldNames as string[]) || []
+            : (user.closeCustomFieldNames as string[]) || [];
+
+        // Check if field already exists
+        if (currentFields.includes(fieldName)) {
+            return { success: true }; // Already exists, no need to add
+        }
+
+        const updatedFields = [...currentFields, fieldName];
+
+        if (type === "open") {
+            await db.update(UserTable)
+                .set({ openCustomFieldNames: updatedFields })
+                .where(eq(UserTable.id, userId));
+        } else {
+            await db.update(UserTable)
+                .set({ closeCustomFieldNames: updatedFields })
+                .where(eq(UserTable.id, userId));
+        }
+
+        return { success: true };
+    } catch (err) {
+        console.error("Error adding custom field name:", err);
+        return { success: false, error: "Failed to add field" };
+    }
+}
+
+export async function removeCustomFieldName(
+    type: "open" | "close",
+    fieldName: string
+): Promise<{ success: boolean; error?: string }> {
+    const { userId } = await auth();
+    if (!userId) {
+        return { success: false, error: "Not authenticated" };
+    }
+
+    try {
+        const user = await db.query.UserTable.findFirst({
+            where: eq(UserTable.id, userId),
+        });
+
+        if (!user) {
+            return { success: false, error: "User not found" };
+        }
+
+        const currentFields = type === "open"
+            ? (user.openCustomFieldNames as string[]) || []
+            : (user.closeCustomFieldNames as string[]) || [];
+
+        const updatedFields = currentFields.filter(f => f !== fieldName);
+
+        if (type === "open") {
+            await db.update(UserTable)
+                .set({ openCustomFieldNames: updatedFields })
+                .where(eq(UserTable.id, userId));
+        } else {
+            await db.update(UserTable)
+                .set({ closeCustomFieldNames: updatedFields })
+                .where(eq(UserTable.id, userId));
+        }
+
+        return { success: true };
+    } catch (err) {
+        console.error("Error removing custom field name:", err);
+        return { success: false, error: "Failed to remove field" };
+    }
+}

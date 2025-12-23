@@ -1,4 +1,4 @@
-import { Rule } from "./dbSchema.types";
+import { Rule, CloseEvent } from "./dbSchema.types";
 
 export type Trades = {
     notes: string | undefined;
@@ -10,8 +10,8 @@ export type Trades = {
     openTime: string;
     closeTime?: string;
     isActiveTrade: boolean;
-    deposit: string;
-    instrumentName: string;
+    deposit?: string;
+    instrumentName?: string;
     symbolName: string;
     entryPrice?: string;
     totalCost?: string;
@@ -23,10 +23,13 @@ export type Trades = {
     strategyName?: string;
     appliedOpenRules?: Rule[] | null;
     appliedCloseRules?: Rule[] | null;
+    closeEvents?: CloseEvent[];
+    openOtherDetails?: Record<string, string>;
+    closeOtherDetails?: Record<string, string>;
 };
 
 export type SortByType =
-    | "instrumentName"
+    | "symbolName"
     | "positionType"
     | "openDate"
     | "closeDate"

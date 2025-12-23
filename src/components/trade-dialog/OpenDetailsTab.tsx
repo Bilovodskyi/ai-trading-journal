@@ -19,11 +19,8 @@ import {
     SelectGroup,
     SelectItem,
     SelectTrigger,
-    SelectValue,
 } from "../ui/select";
-import { useAutoCalcOpenFields } from "./hooks/useAutoCalcOpenFields";
-
-const instrumentLabels = ["Crypto", "Forex", "Stock", "Index", "Commodity", "Bond", "ETF", "Option", "Other"];
+import { CustomFieldsSection } from "./CustomFieldsSection";
 
 interface OpenDetailsTabProps {
     form: UseFormReturn<z.infer<typeof newTradeFormSchema>>;
@@ -31,6 +28,8 @@ interface OpenDetailsTabProps {
     setOpenDate: (date: Date | undefined) => void;
     symbolLabels: string[];
     day?: dayjs.Dayjs | undefined;
+    userFieldNames: string[];
+    onFieldNamesChange?: () => void;
 }
 
 export const OpenDetailsTab = ({
@@ -38,168 +37,130 @@ export const OpenDetailsTab = ({
     openDate,
     setOpenDate,
     symbolLabels,
-    day
+    day,
+    userFieldNames,
+    onFieldNamesChange
 }: OpenDetailsTabProps) => {
     const { register, control, setValue, formState: { errors } } = form;
-
-    // Auto-calculate the third field among entryPrice, quantity, totalCost
-    useAutoCalcOpenFields(form);
 
     return (
         <div className="flex flex-col gap-4">
             {/* Date and Time Section */}
-            <div className="mb-2 flex gap-4">
-                <div className="flex flex-col flex-1 gap-1">
-                    <div className="flex items-center justify-between">
-                        <Label htmlFor="close-time" className="mb-1">
-                            Open date:
-                        </Label>
-                        {errors.openDate && (
-                            <span className="mb-1 text-[.75rem] text-red-500">
-                                {errors.openDate.message}
-                            </span>
+            <div className="border border-zinc-200 rounded-lg p-4">
+                <h3 className="text-sm font-medium text-zinc-700 mb-3">When did you open?</h3>
+                <div className="flex gap-4">
+                    <div className="flex flex-col flex-1 gap-1">
+                        <div className="flex items-center justify-between">
+                            <Label htmlFor="open-date" className="text-sm text-zinc-600">
+                                Date
+                            </Label>
+                            {errors.openDate && (
+                                <span className="text-xs text-red-500">
+                                    {errors.openDate.message}
+                                </span>
+                            )}
+                        </div>
+
+                        {day == undefined ? (
+                            <Controller
+                                name="openDate"
+                                control={control}
+                                render={({ field }) => (
+                                    <Popover modal={true}>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                variant={"outline"}
+                                                className="justify-start text-left font-normal text-sm">
+                                                <CalendarIcon className="h-4 w-4" />
+                                                {openDate ? (
+                                                    format(openDate, "dd MMM yyyy")
+                                                ) : (
+                                                    <span className="text-zinc-400">Pick a date</span>
+                                                )}
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent>
+                                            <Calendar
+                                                mode="single"
+                                                selected={openDate}
+                                                onSelect={(date) => {
+                                                    setOpenDate(date);
+                                                    field.onChange(date?.toISOString());
+                                                }}
+                                                defaultMonth={new Date()}
+                                            />
+                                        </PopoverContent>
+                                    </Popover>
+                                )}
+                            />
+                        ) : (
+                            <Input
+                                disabled
+                                className="text-sm"
+                                placeholder={`${day.date()} ${months[day.month()].slice(0, 3)} ${day.year()}`}
+                            />
                         )}
                     </div>
-
-                    {day == undefined ? (
-                        <Controller
-                            name="openDate"
-                            control={control}
-                            render={({ field }) => (
-                                <Popover modal={true}>
-                                    <PopoverTrigger asChild>
-                                        <Button
-                                            variant={"outline"}
-                                            className="justify-start text-left font-normal max-md:text-[.75rem]">
-                                            <CalendarIcon />
-                                            {openDate ? (
-                                                format(openDate, "dd MMM yyyy")
-                                            ) : (
-                                                <span>Pick a date</span>
-                                            )}
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent>
-                                        <Calendar
-                                            mode="single"
-                                            selected={openDate}
-                                            onSelect={(date) => {
-                                                setOpenDate(date);
-                                                field.onChange(date?.toISOString());
-                                            }}
-                                            defaultMonth={new Date()}
-                                        />
-                                    </PopoverContent>
-                                </Popover>
-                            )}
-                        />
-                    ) : (
-                        <Input
-                            disabled
-                            className="max-md:text-[.75rem]"
-                            placeholder={`${day.date()} ${months[day.month()].slice(0, 3)} ${day.year()}`}
-                        />
-                    )}
-                </div>
-                <div className="flex flex-col flex-1 gap-1">
-                    <div className="flex items-center justify-between">
-                        <Label htmlFor="open-time" className="mb-1">
-                            Open time:
-                        </Label>
-                        <span className="text-[.75rem] text-black/50">
-                            (default time)
-                        </span>
-                    </div>
-                    <Input
-                        type="time"
-                        id="open-time"
-                        className="w-full max-md:text-[.75rem]"
-                        {...register("openTime")}
-                    />
-                </div>
-            </div>
-
-            {/* Symbol Name Section */}
-            <div className="mb-2 flex flex-col gap-1">
-                <div className="flex items-center justify-between">
-                    <Label htmlFor="symbolName" className="mb-1">
-                        Symbol:
-                    </Label>
-
-                    {errors.symbolName ? (
-                        <span className="mb-1 text-[.75rem] text-red-500">
-                            {errors.symbolName.message}
-                        </span>
-                    ) : (
-                        <span className="mb-1 text-[.75rem] text-black/50">
-                            (e.g. Bitcoin or BTC)
-                        </span>
-                    )}
-                </div>
-                <Controller
-                    name="symbolName"
-                    control={control}
-                    render={({ field }) => (
-                        <div className="flex gap-2">
-                            <Input
-                                value={field.value}
-                                onChange={field.onChange}
-                                placeholder="Type manually"
-                                type="text"
-                                className="w-2/3 max-md:text-[.75rem]"
-                            />
-                            <Select onValueChange={field.onChange}>
-                                <SelectTrigger className="w-1/3">
-                                    <div className="text-zinc-500">
-                                        Or select
-                                    </div>
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectGroup>
-                                        {symbolLabels.map((label) => (
-                                            <SelectItem key={label} value={label}>
-                                                {label}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectGroup>
-                                </SelectContent>
-                            </Select>
+                    <div className="flex flex-col flex-1 gap-1">
+                        <div className="flex items-center justify-between">
+                            <Label htmlFor="open-time" className="text-sm text-zinc-600">
+                                Time
+                            </Label>
+                            <span className="text-xs text-zinc-400">
+                                (optional)
+                            </span>
                         </div>
-                    )}
-                />
+                        <Input
+                            type="time"
+                            id="open-time"
+                            className="w-full text-sm"
+                            {...register("openTime")}
+                        />
+                    </div>
+                </div>
             </div>
 
-            {/* Instrument Name Section */}
-            <div className="flex gap-2">
-
-                <div className="mb-2 flex flex-col gap-1 flex-1">
-                    <div className="flex items-center justify-between">
-                        <Label htmlFor="instrumentName" className="mb-1">
-                            Instrument:
+            {/* Trade Info Section */}
+            <div className="border border-zinc-200 rounded-lg p-4">
+                <h3 className="text-sm font-medium text-zinc-700 mb-3">Trade details</h3>
+                
+                {/* Symbol Name */}
+                <div className="mb-4">
+                    <div className="flex items-center justify-between mb-1">
+                        <Label htmlFor="symbolName" className="text-sm text-zinc-600">
+                            Symbol
                         </Label>
-
-                        {errors.instrumentName ? (
-                            <span className="mb-1 text-[.75rem] text-red-500">
-                                {errors.instrumentName.message}
+                        {errors.symbolName ? (
+                            <span className="text-xs text-red-500">
+                                {errors.symbolName.message}
                             </span>
                         ) : (
-                            <span className="mb-1 text-[.75rem] text-black/50">
-                                (e.g. Crypto or Forex)
+                            <span className="text-xs text-zinc-400">
+                                e.g. BTC, AAPL
                             </span>
                         )}
                     </div>
                     <Controller
-                        name="instrumentName"
+                        name="symbolName"
                         control={control}
                         render={({ field }) => (
-                            <div>
-                                <Select onValueChange={field.onChange} value={field.value}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select instrument" />
+                            <div className="flex gap-2">
+                                <Input
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    placeholder="Type symbol"
+                                    type="text"
+                                    className="w-2/3 text-sm"
+                                />
+                                <Select onValueChange={field.onChange}>
+                                    <SelectTrigger className="w-1/3 text-sm">
+                                        <div className="text-zinc-400">
+                                            Or select
+                                        </div>
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectGroup>
-                                            {instrumentLabels.map((label) => (
+                                            {symbolLabels.map((label) => (
                                                 <SelectItem key={label} value={label}>
                                                     {label}
                                                 </SelectItem>
@@ -211,16 +172,18 @@ export const OpenDetailsTab = ({
                         )}
                     />
                 </div>
-                <div className="mb-2 flex flex-col flex-1">
-                    <div className="flex items-center justify-between">
-                        <Label className="mb-1">Position type:</Label>
+
+                {/* Position Type */}
+                <div className="mb-4">
+                    <div className="flex items-center justify-between mb-1">
+                        <Label className="text-sm text-zinc-600">Position</Label>
                         {errors.positionType ? (
-                            <span className="mb-1 text-[.75rem] text-red-500">
+                            <span className="text-xs text-red-500">
                                 {errors.positionType.message}
                             </span>
                         ) : (
-                            <span className="mb-1 text-[.75rem] text-black/50">
-                                (Click to change)
+                            <span className="text-xs text-zinc-400">
+                                Click to toggle
                             </span>
                         )}
                     </div>
@@ -230,133 +193,91 @@ export const OpenDetailsTab = ({
                         render={({ field }) => (
                             <div
                                 className={`h-[40px] ${field.value === "buy" ? "bg-buy" : "bg-sell"
-                                    } rounded-md cursor-pointer flex-center`}
+                                    } rounded-md cursor-pointer flex items-center justify-center transition-colors`}
                                 onClick={() =>
                                     field.value === "buy"
                                         ? setValue("positionType", "sell")
                                         : setValue("positionType", "buy")
                                 }>
-                                <p className="text-white">
-                                    {field.value === "buy" ? "Buy" : "Sell"}
+                                <p className="text-white font-medium text-sm">
+                                    {field.value === "buy" ? "Buy (Long)" : "Sell (Short)"}
                                 </p>
                             </div>
                         )}
                     />
                 </div>
-            </div>
 
-            {/* Position Type Section */}
-            <div className="flex gap-2">
-
-
-                <div className="mb-2 flex flex-col flex-1 gap-1">
-                    <div className="flex items-center justify-between">
-                        <Label htmlFor="entryPrice" className="mb-1">
-                            Deposit:
-                        </Label>
-                        {errors.deposit ? (
-                            <span className="mb-1 text-[.75rem] text-red-500">
-                                {errors.deposit.message}
-                            </span>
-                        ) : (
-                            <span className="mb-1 text-[.75rem] text-black/50">
-                                (Only num.)
-                            </span>
-                        )}
+                {/* Entry Price and Quantity */}
+                <div className="flex gap-4">
+                    <div className="flex flex-col flex-1 gap-1">
+                        <div className="flex items-center justify-between">
+                            <Label htmlFor="entryPrice" className="text-sm text-zinc-600">
+                                Entry price
+                            </Label>
+                            {errors.entryPrice && (
+                                <span className="text-xs text-red-500">
+                                    {errors.entryPrice.message}
+                                </span>
+                            )}
+                        </div>
+                        <Input
+                            type="number"
+                            id="entryPrice"
+                            step="any"
+                            placeholder="0.00"
+                            className="w-full text-sm"
+                            {...register("entryPrice")}
+                        />
                     </div>
-                    <Input
-                        type="number"
-                        id="deposit"
-                        className="w-full max-md:text-[.75rem]"
-                        {...register("deposit")}
-                    />
-                </div>
-                <div className="mb-2 flex flex-col flex-1 gap-1">
-                    <div className="flex items-center justify-between">
-                        <Label htmlFor="entryPrice" className="mb-1">
-                            Entry price:
-                        </Label>
-                        {errors.entryPrice ? (
-                            <span className="mb-1 text-[.75rem] text-red-500">
-                                {errors.entryPrice.message}
-                            </span>
-                        ) : (
-                            <span className="mb-1 text-[.75rem] text-black/50">
-                                (Only num.)
-                            </span>
-                        )}
+                    <div className="flex flex-col flex-1 gap-1">
+                        <div className="flex items-center justify-between">
+                            <Label htmlFor="quantity" className="text-sm text-zinc-600">
+                                Quantity
+                            </Label>
+                            {errors.quantity && (
+                                <span className="text-xs text-red-500">
+                                    {errors.quantity.message}
+                                </span>
+                            )}
+                        </div>
+                        <Input
+                            type="number"
+                            id="quantity"
+                            step="any"
+                            placeholder="0"
+                            className="w-full text-sm"
+                            {...register("quantity")}
+                        />
                     </div>
-                    <Input
-                        type="number"
-                        id="entryPrice"
-                        step="any"
-                        className="w-full max-md:text-[.75rem]"
-                        {...register("entryPrice")}
-                    />
-                </div>
-            </div>
-
-            {/* Quantity and Total cost Section */}
-            <div className="flex gap-2">
-                <div className="mb-2 flex flex-col flex-1 gap-1">
-                    <div className="flex items-center justify-between">
-                        <Label htmlFor="quantity" className="mb-1">
-                            Quantity:
-                        </Label>
-                        {errors.quantity ? (
-                            <span className="mb-1 text-[.75rem] text-red-500">
-                                {errors.quantity.message}
-                            </span>
-                        ) : (
-                            <span className="mb-1 text-[.75rem] text-black/50">
-                                (Only num.)
-                            </span>
-                        )}
-                    </div>
-                    <Input
-                        type="number"
-                        id="quantity"
-                        step="any"
-                        className="w-full max-md:text-[.75rem]"
-                        {...register("quantity")}
-                    />
-                </div>
-                <div className="mb-2 flex flex-col flex-1 gap-1">
-                    <div className="flex items-center justify-between">
-                        <Label htmlFor="totalCost" className="mb-1">
-                            Total cost:
-                        </Label>
-                        {errors.totalCost ? (
-                            <span className="mb-1 text-[.75rem] text-red-500">
-                                {errors.totalCost.message}
-                            </span>
-                        ) : (
-                            <span className="mb-1 text-[.75rem] text-black/50">
-                                (Only num.)
-                            </span>
-                        )}
-                    </div>
-                    <Input
-                        type="number"
-                        id="totalCost"
-                        className="w-full max-md:text-[.75rem]"
-                        {...register("totalCost")}
-                    />
                 </div>
             </div>
 
             {/* Notes Section */}
-            <div className="mb-4 flex flex-col gap-1">
-                <Label htmlFor="notes" className="mb-1">
-                    Notes (optional):
-                </Label>
+            <div className="border border-zinc-200 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-2">
+                    <Label htmlFor="notes" className="text-sm font-medium text-zinc-700">
+                        Notes
+                    </Label>
+                    <span className="text-xs text-zinc-400">
+                        optional
+                    </span>
+                </div>
                 <textarea
                     id="notes"
                     rows={2}
-                    className="w-full outline-none rounded-md border border-zinc-200 px-3 py-1 resize-none text-[0.9rem]"
+                    placeholder="Add any notes about this trade..."
+                    className="w-full outline-none rounded-md border border-zinc-200 px-3 py-2 resize-none text-sm focus:border-zinc-400 transition-colors"
                     {...register("notes")}
                 />
             </div>
+
+            {/* Custom Fields Section */}
+            <CustomFieldsSection 
+                form={form} 
+                fieldKey="openOtherDetails"
+                userFieldNames={userFieldNames}
+                onFieldNamesChange={onFieldNamesChange}
+            />
         </div>
     );
 };

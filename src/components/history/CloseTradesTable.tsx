@@ -1,14 +1,11 @@
 "use client";
 
-import Image from "next/image";
 import { useState } from "react";
-import { MdDelete, MdStar } from "react-icons/md";
+import { MdStar } from "react-icons/md";
 import { FaArrowTrendDown, FaArrowTrendUp } from "react-icons/fa6";
-import { PiCalendarDotsThin } from "react-icons/pi";
-import { BookOpen, Moon, Sun } from "lucide-react";
+import { BookOpen, Pencil, Trash2, ChevronDown, ChevronRight } from "lucide-react";
 
 import { Trades } from "@/types";
-import { isInMorningRange } from "@/features/history/isInMorningRange";
 import { FollowedStrategyPie } from "@/components/history/FollowedStrategyPie";
 import EditTrade from "@/components/history/EditTrade";
 import { useDeleteTrade } from "@/hooks/useDeleteTrade";
@@ -35,42 +32,18 @@ type ClosedTrade = Trades & {
 
 type CloseTradesTableProps = {
     trades: ClosedTrade[];
-    startCapital: string | null;
     total: number;
-};
-
-const INSTRUMENT_LABELS = [
-    { name: "Crypto", shortcut: "CRY" },
-    { name: "Forex", shortcut: "FX" },
-    { name: "Stock", shortcut: "STO" },
-    { name: "Index", shortcut: "IDX" },
-    { name: "Commodity", shortcut: "CMD" },
-    { name: "Bond", shortcut: "BND" },
-    { name: "ETF", shortcut: "ETF" },
-    { name: "Option", shortcut: "OPT" },
-    { name: "Other", shortcut: "OTHER" },
-];
-
-const getInstrumentLabel = (instrument: string | undefined) => {
-    if (!instrument) return "OTHER";
-    return INSTRUMENT_LABELS.find(
-        (label) => label.name.toLowerCase() === instrument.toLowerCase()
-    )?.shortcut;
 };
 
 export const CloseTradesTable = ({
     trades,
-    startCapital,
     total,
 }: CloseTradesTableProps) => {
     const [strategyDialogOpen, setStrategyDialogOpen] = useState(false);
-    const [selectedTrade, setSelectedTrade] = useState<ClosedTrade | null>(
-        null
-    );
+    const [selectedTrade, setSelectedTrade] = useState<ClosedTrade | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-    const [tradeToDelete, setTradeToDelete] = useState<ClosedTrade | null>(
-        null
-    );
+    const [tradeToDelete, setTradeToDelete] = useState<ClosedTrade | null>(null);
+    const [expandedTradeId, setExpandedTradeId] = useState<string | null>(null);
 
     const { strategies: localStrategies } = useAppSelector(
         (state) => state.strategies
@@ -83,10 +56,8 @@ export const CloseTradesTable = ({
         const strategy = localStrategies.find((s) => s.id === trade.strategyId);
         const totalCloseRulesOverall = strategy?.closePositionRules.length || 0;
         const totalOpenRulesOverall = strategy?.openPositionRules.length || 0;
-        const totalRulesOverall =
-            totalCloseRulesOverall + totalOpenRulesOverall;
-        const totalRulesFollowed =
-            appliedCloseRules.length + appliedOpenRules.length;
+        const totalRulesOverall = totalCloseRulesOverall + totalOpenRulesOverall;
+        const totalRulesFollowed = appliedCloseRules.length + appliedOpenRules.length;
         const percentage = (totalRulesFollowed / totalRulesOverall) * 100;
         return percentage;
     };
@@ -96,313 +67,350 @@ export const CloseTradesTable = ({
         setStrategyDialogOpen(true);
     };
 
+    const toggleExpanded = (tradeId: string) => {
+        setExpandedTradeId(expandedTradeId === tradeId ? null : tradeId);
+    };
+
     if (!trades || trades.length === 0) {
         return (
-            <div className="p-4 text-center text-zinc-500">
-                No closed trades
+            <div className="border border-zinc-200 rounded-lg p-8 text-center text-zinc-500">
+                No closed trades yet
             </div>
         );
     }
 
-    console.log(trades);
     return (
-        <div className="flex flex-col md:h-full mt-2">
-            {/* Grid Header */}
-            <div className="grid grid-cols-5 md:grid-cols-40 gap-1 p-2 items-center border-b bg-muted/50 font-medium text-sm sticky top-0 bg-white z-20">
-                <div className="col-span-1 md:col-span-2 text-left">Symbol</div>
-                <div className="hidden md:block md:col-span-2 text-center">
-                    Instrument
-                </div>
-                <div className="hidden md:block md:col-span-2 text-center">
-                    Type
-                </div>
-                <div className="hidden md:block md:col-span-4 text-center">
-                    Open date
-                </div>
-                <div className="hidden md:block md:col-span-2 text-center">
-                    Open time
-                </div>
-                <div className="col-span-1 md:col-span-4 text-center">
-                    Close date
-                </div>
-                <div className="hidden md:block md:col-span-2 text-center">
-                    Close time
-                </div>
-                <div className="hidden md:block md:col-span-4 text-center">
-                    Open/Close price
-                </div>
-                <div className="hidden md:block md:col-span-2 text-center">
-                    Quantity
-                </div>
-                <div className="hidden md:block md:col-span-3 text-center">
-                    Deposit <p className="text-[.75rem]">(% of capital)</p>
-                </div>
-                <div className="col-span-1 md:col-span-2 text-center">
-                    Result
-                </div>
-                <div className="hidden md:block md:col-span-2 text-center">
-                    Cost
-                </div>
-                <div className="hidden md:block md:col-span-2 text-center">
-                    Strategy
-                </div>
-                <div className="hidden md:block md:col-span-4 text-center">
-                    Rating
-                </div>
-                <div className="hidden md:block md:col-span-1 text-center">
-                    Note
-                </div>
-                <div className="col-span-1 md:col-span-1 text-center">Edit</div>
-                <div className="col-span-1 md:col-span-1 text-center">
-                    Delete
+        <div className="flex flex-col gap-4 pt-4">
+            {/* Summary Card */}
+            <div className="border border-zinc-200 rounded-lg p-4 bg-zinc-50">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <p className="text-sm text-zinc-500">Total Trades</p>
+                        <p className="text-2xl font-semibold text-zinc-700">{trades.length}</p>
+                    </div>
+                    <div className="text-right">
+                        <p className="text-sm text-zinc-500">Net P/L</p>
+                        <p className={`text-2xl font-semibold ${total >= 0 ? "text-buy" : "text-sell"}`}>
+                            {total >= 0 ? "+" : ""}{total.toLocaleString("de-DE", { minimumFractionDigits: 2 })}
+                        </p>
+                    </div>
                 </div>
             </div>
 
-            {/* Grid Body */}
-            <div className="flex-1 overflow-auto">
-                {trades.map((trade) => (
-                    <div
-                        key={trade.id}
-                        className="grid grid-cols-5 md:grid-cols-40 gap-1 p-2 border-b hover:bg-muted/30 transition-colors items-center">
-                        {/* Symbol */}
-                        <div className="col-span-1 md:col-span-2 truncate">
-                            {trade.symbolName}
-                        </div>
+            {/* Trades List */}
+            <div className="border border-zinc-200 rounded-lg">
+                {/* Header - Fixed */}
+                <div className="grid grid-cols-12 gap-2 px-4 py-3 bg-zinc-50 border-b border-zinc-200 text-sm font-medium text-zinc-600">
+                    <div className="col-span-5 md:col-span-2">Symbol</div>
+                    <div className="col-span-2 hidden md:block text-center">Open → Close</div>
+                    <div className="col-span-2 hidden md:block text-center">Entry → Exit</div>
+                    <div className="col-span-1 hidden md:block text-center">Qty</div>
+                    <div className="col-span-4 md:col-span-2 text-center">Result</div>
+                    <div className="col-span-1 hidden md:block text-center">Rating</div>
+                    <div className="col-span-3 md:col-span-2 text-right">Actions</div>
+                </div>
 
-                        {/* Instrument */}
-                        <div className="hidden md:block md:col-span-2 text-center">
-                            <div className="border border-zinc-300 rounded-md px-2 py-1 text-xs inline-block">
-                                {getInstrumentLabel(trade.instrumentName)}
-                            </div>
-                        </div>
+                {/* Body - Scrollable */}
+                <div className="max-h-[60vh] overflow-y-auto">
+                    {trades.map((trade) => {
+                        const closeEvents = trade.closeEvents || [];
+                        const hasPartials = closeEvents.length > 0;
+                        const isExpanded = expandedTradeId === trade.id;
 
-                        {/* Type */}
-                        <div className="hidden md:block md:col-span-2 text-center">
-                            <p
-                                className={`bg-${
-                                    trade.positionType === "sell"
-                                        ? "sell"
-                                        : "buy"
-                                } 
-                                         w-fit px-2 py-1 rounded-md text-white text-xs mx-auto`}>
-                                {trade.positionType}
-                            </p>
-                        </div>
+                        // Calculate totals from all partial closes + final close
+                        const partialQty = closeEvents.reduce((sum, e) => sum + (e.quantitySold || 0), 0);
+                        const partialResult = closeEvents.reduce((sum, e) => sum + (e.result || 0), 0);
+                        const finalQty = Number(trade.quantitySold) || Number(trade.quantity) || 0;
+                        const finalResult = Number(trade.result) || 0;
+                        
+                        // Total = partials + final close
+                        const totalQty = hasPartials ? partialQty + finalQty : finalQty;
+                        const totalResult = hasPartials ? partialResult + finalResult : finalResult;
 
-                        {/* Open Date */}
-                        <div className="hidden md:block md:col-span-4 text-center text-neutral-500">
-                            <div className="flex gap-1 items-center justify-center">
-                                <PiCalendarDotsThin className="max-md:hidden" />
-                                <span className="text-sm">
-                                    {new Intl.DateTimeFormat("en-GB", {
-                                        day: "2-digit",
-                                        month: "short",
-                                        year: "numeric",
-                                    }).format(new Date(trade.openDate))}
-                                </span>
-                            </div>
-                        </div>
+                        // Calculate weighted average sell price for partial trades
+                        let avgSellPrice = Number(trade.sellPrice) || 0;
+                        if (hasPartials && totalQty > 0) {
+                            const partialWeightedSum = closeEvents.reduce((sum, e) => sum + ((e.sellPrice || 0) * (e.quantitySold || 0)), 0);
+                            const finalWeightedSum = (Number(trade.sellPrice) || 0) * finalQty;
+                            avgSellPrice = (partialWeightedSum + finalWeightedSum) / totalQty;
+                        }
 
-                        {/* Open Time */}
-                        <div className="hidden md:block md:col-span-2 text-center text-neutral-500">
-                            <div className="flex gap-1 items-center justify-center">
-                                {isInMorningRange(trade.openTime) ? (
-                                    <Sun className="h-3 w-3" />
-                                ) : (
-                                    <Moon className="h-3 w-3" />
-                                )}
-                                <span className="text-sm">
-                                    {trade.openTime}
-                                </span>
-                            </div>
-                        </div>
+                        // Create all close events including the final close for display
+                        const allCloseEvents = hasPartials ? [
+                            ...closeEvents,
+                            // Add final close as the last event
+                            {
+                                id: `${trade.id}-final`,
+                                date: trade.closeDate,
+                                time: trade.closeTime || "",
+                                quantitySold: finalQty,
+                                sellPrice: Number(trade.sellPrice) || 0,
+                                result: finalResult,
+                                isFinal: true, // Mark this as the final close
+                            }
+                        ] : [];
 
-                        {/* Close Date */}
-                        <div className="col-span-1 md:col-span-4 text-center text-neutral-500">
-                            <div className="flex gap-1 items-center justify-center">
-                                <PiCalendarDotsThin className="max-md:hidden" />
-                                <span className="text-sm">
-                                    {new Intl.DateTimeFormat("en-GB", {
-                                        day: "2-digit",
-                                        month: "short",
-                                        year: "numeric",
-                                    }).format(new Date(trade.closeDate))}
-                                </span>
-                            </div>
-                        </div>
+                        return (
+                            <div key={trade.id} className="border-b border-zinc-100 last:border-b-0">
+                                {/* Main Row */}
+                                <div
+                                    className={`grid grid-cols-12 gap-2 px-4 py-3 hover:bg-zinc-50 transition-colors items-center ${hasPartials ? 'cursor-pointer' : ''}`}
+                                    onClick={() => hasPartials && toggleExpanded(trade.id)}
+                                >
+                                    {/* Symbol & Type */}
+                                    <div className="col-span-5 md:col-span-2 flex items-center gap-1.5">
+                                        {hasPartials && (
+                                            <button className="shrink-0 text-zinc-400">
+                                                {isExpanded ? (
+                                                    <ChevronDown className="w-4 h-4" />
+                                                ) : (
+                                                    <ChevronRight className="w-4 h-4" />
+                                                )}
+                                            </button>
+                                        )}
+                                        <span
+                                            className={`shrink-0 text-[10px] px-1.5 py-0.5 rounded text-white font-medium uppercase ${
+                                                trade.positionType === "sell" ? "bg-sell" : "bg-buy"
+                                            }`}
+                                        >
+                                            {trade.positionType === "buy" ? "L" : "S"}
+                                        </span>
+                                        <span className="font-medium text-sm text-zinc-700 truncate">
+                                            {trade.symbolName}
+                                        </span>
+                                        {hasPartials && (
+                                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium shrink-0">
+                                                Partial
+                                            </span>
+                                        )}
+                                    </div>
 
-                        {/* Close Time */}
-                        <div className="hidden md:block md:col-span-2 text-center text-neutral-500">
-                            <div className="flex gap-1 items-center justify-center">
-                                {isInMorningRange(trade.closeTime) ? (
-                                    <Sun className="h-3 w-3" />
-                                ) : (
-                                    <Moon className="h-3 w-3" />
-                                )}
-                                <span className="text-sm">
-                                    {trade.closeTime}
-                                </span>
-                            </div>
-                        </div>
+                                    {/* Open → Close Date */}
+                                    <div className="col-span-2 hidden md:flex items-center justify-center gap-1 text-sm">
+                                        <span className="text-zinc-400">
+                                            {new Intl.DateTimeFormat("en-GB", {
+                                                day: "2-digit",
+                                                month: "short",
+                                                year: "2-digit",
+                                            }).format(new Date(trade.openDate))}
+                                        </span>
+                                        <span className="text-zinc-300">→</span>
+                                        <span className="text-zinc-600">
+                                            {new Intl.DateTimeFormat("en-GB", {
+                                                day: "2-digit",
+                                                month: "short",
+                                                year: "2-digit",
+                                            }).format(new Date(trade.closeDate))}
+                                        </span>
+                                    </div>
 
-                        {/* Price */}
-                        <div className="hidden md:block md:col-span-4 text-center text-sm flex-col gap-1">
-                            <span className="text-neutral-500">
-                                {trade.entryPrice}
-                            </span>
-                            <span className="">→ {trade.sellPrice}</span>
-                        </div>
+                                    {/* Entry → Exit Price */}
+                                    <div className="col-span-2 hidden md:flex items-center justify-center gap-1 text-sm">
+                                        <span className="text-zinc-400">{trade.entryPrice}</span>
+                                        <span className="text-zinc-300">→</span>
+                                        {hasPartials ? (
+                                            <span className="text-zinc-700 flex items-center gap-0.5">
+                                                {avgSellPrice.toFixed(2)}
+                                                <span className="text-[10px] px-1.5 rounded bg-amber-100 text-amber-700 font-medium shrink-0">avg</span>
+                                            </span>
+                                        ) : (
+                                            <span className="text-zinc-700">{trade.sellPrice}</span>
+                                        )}
+                                    </div>
 
-                        {/* Quantity */}
-                        <div className="hidden md:block md:col-span-2 text-center text-sm truncate">
-                            {trade.quantity}
-                        </div>
+                                    {/* Quantity - show total for trades with partials */}
+                                    <div className="col-span-1 hidden md:block text-center text-sm text-zinc-600">
+                                        {totalQty}
+                                    </div>
 
-                        {/* Deposit */}
-                        <div className="hidden md:block md:col-span-3">
-                            <div className="flex flex-col gap-1 text-center">
-                                <span className="text-sm font-medium">
-                                    {Number(trade.deposit).toLocaleString(
-                                        "de-DE"
-                                    )}
-                                </span>
-                                <span className="text-sm text-neutral-400">
-                                    (
-                                    {startCapital && +startCapital !== 0
-                                        ? `${Math.round(
-                                              (Number(trade.deposit) /
-                                                  Number(startCapital)) *
-                                                  100
-                                          )}%`
-                                        : "no capital"}
-                                    )
-                                </span>
-                            </div>
-                        </div>
+                                    {/* Result - show total for trades with partials */}
+                                    <div className="col-span-4 md:col-span-2 flex items-center justify-center gap-1">
+                                        {totalResult >= 0 ? (
+                                            <FaArrowTrendUp className="text-buy text-xs" />
+                                        ) : (
+                                            <FaArrowTrendDown className="text-sell text-xs" />
+                                        )}
+                                        <span
+                                            className={`text-sm font-medium ${
+                                                totalResult >= 0 ? "text-buy" : "text-sell"
+                                            }`}
+                                        >
+                                            {totalResult >= 0 ? "+" : ""}
+                                            {totalResult.toLocaleString("de-DE")}
+                                        </span>
+                                    </div>
 
-                        {/* Result */}
-                        <div
-                            className={`col-span-1 md:col-span-2 text-center ${
-                                Number(trade.result) >= 0
-                                    ? "text-buy"
-                                    : "text-sell"
-                            }`}>
-                            <div className="flex gap-1 items-center justify-center">
-                                {Number(trade.result) >= 0 ? (
-                                    <FaArrowTrendUp className="text-sm" />
-                                ) : (
-                                    <FaArrowTrendDown className="text-sm" />
-                                )}
-                                <span className="text-sm font-medium">
-                                    {Number(trade.result).toLocaleString(
-                                        "de-DE"
-                                    )}
-                                </span>
-                            </div>
-                        </div>
+                                    {/* Rating */}
+                                    <div className="col-span-1 hidden md:flex justify-center">
+                                        {trade.rating && trade.rating > 0 ? (
+                                            <div className="flex items-center gap-0.5">
+                                                <MdStar className="text-yellow-400 text-sm" />
+                                                <span className="text-xs text-zinc-600">{trade.rating}</span>
+                                            </div>
+                                        ) : (
+                                            <span className="text-xs text-zinc-300">-</span>
+                                        )}
+                                    </div>
 
-                        {/* Cost */}
-                        <div className="hidden md:block md:col-span-2 text-center text-xs">
-                            {trade.totalCost}
-                        </div>
+                                    {/* Actions */}
+                                    <div className="col-span-3 md:col-span-2 flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+                                         {/* Strategy */}
+                                        {trade.strategyId && (
+                                            <button
+                                                onClick={() => handleStrategyClick(trade)}
+                                                className="hidden md:block p-1.5 rounded hover:bg-zinc-100 transition-colors shrink-0"
+                                            >
+                                                <FollowedStrategyPie
+                                                    percentage={handleCountPercentage(trade)}
+                                                />
+                                            </button>
+                                        )}
+                                        {/* Notes */}
+                                        {trade.notes && (
+                                            <HoverCard>
+                                                <HoverCardTrigger className="p-1.5 rounded hover:bg-zinc-100 transition-colors">
+                                                    <BookOpen className="w-4 h-4 text-zinc-400 hover:text-zinc-600" />
+                                                </HoverCardTrigger>
+                                                <HoverCardContent className="w-64">
+                                                    <p className="text-sm text-zinc-600">{trade.notes}</p>
+                                                </HoverCardContent>
+                                            </HoverCard>
+                                        )}
 
-                        {/* Strategy */}
-                        <div className="hidden md:block md:col-span-2 text-center z-10">
-                            {startCapital &&
-                                ((trade.appliedCloseRules &&
-                                    trade.appliedCloseRules.length > 0) ||
-                                    (trade.appliedOpenRules &&
-                                        trade.appliedOpenRules.length > 0)) && (
-                                    <div
-                                        onClick={() =>
-                                            handleStrategyClick(trade)
-                                        }
-                                        className="cursor-pointer">
-                                        <FollowedStrategyPie
-                                            percentage={handleCountPercentage(
-                                                trade
-                                            )}
+                                        {/* Custom Fields */}
+                                        {((trade.openOtherDetails && Object.keys(trade.openOtherDetails).length > 0) ||
+                                          (trade.closeOtherDetails && Object.keys(trade.closeOtherDetails).length > 0)) && (
+                                            <HoverCard>
+                                                <HoverCardTrigger className="p-1.5 rounded hover:bg-zinc-100 transition-colors">
+                                                    <svg className="w-4 h-4 text-zinc-400 hover:text-zinc-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                        <rect x="3" y="3" width="18" height="18" rx="2" />
+                                                        <line x1="9" y1="9" x2="15" y2="9" />
+                                                        <line x1="9" y1="13" x2="15" y2="13" />
+                                                        <line x1="9" y1="17" x2="12" y2="17" />
+                                                    </svg>
+                                                </HoverCardTrigger>
+                                                <HoverCardContent className="w-72">
+                                                    <div className="space-y-3">
+                                                        {trade.openOtherDetails && Object.keys(trade.openOtherDetails).length > 0 && (
+                                                            <div>
+                                                                <h4 className="text-xs font-medium text-zinc-500 uppercase mb-1">Open Details</h4>
+                                                                <div className="space-y-1">
+                                                                    {Object.entries(trade.openOtherDetails).map(([key, value]) => (
+                                                                        <div key={key} className="flex justify-between text-sm">
+                                                                            <span className="text-zinc-500">{key}:</span>
+                                                                            <span className="text-zinc-700 font-medium">{value}</span>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                        {trade.closeOtherDetails && Object.keys(trade.closeOtherDetails).length > 0 && (
+                                                            <div>
+                                                                <h4 className="text-xs font-medium text-zinc-500 uppercase mb-1">Close Details</h4>
+                                                                <div className="space-y-1">
+                                                                    {Object.entries(trade.closeOtherDetails).map(([key, value]) => (
+                                                                        <div key={key} className="flex justify-between text-sm">
+                                                                            <span className="text-zinc-500">{key}:</span>
+                                                                            <span className="text-zinc-700 font-medium">{value}</span>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </HoverCardContent>
+                                            </HoverCard>
+                                        )}
+
+                                        {/* Edit */}
+                                        <EditTrade
+                                            existingTrade={trade}
+                                            initialTab="close-details"
+                                            trigger={
+                                                <button className="p-1.5 rounded hover:bg-zinc-100 transition-colors">
+                                                    <Pencil className="w-4 h-4 text-zinc-400 hover:text-zinc-600" />
+                                                </button>
+                                            }
                                         />
+
+                                        {/* Delete */}
+                                        <button
+                                            onClick={() => {
+                                                setTradeToDelete(trade);
+                                                setDeleteDialogOpen(true);
+                                            }}
+                                            className="p-1.5 rounded hover:bg-red-50 transition-colors"
+                                        >
+                                            <Trash2 className="w-4 h-4 text-zinc-400 hover:text-red-500" />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Expanded Partial Closes Section */}
+                                {hasPartials && isExpanded && (
+                                    <div className="bg-zinc-50 border-t border-zinc-100 px-4 py-3">
+                                        <h4 className="text-xs font-medium text-zinc-500 uppercase mb-2">
+                                            Close History ({allCloseEvents.length} {allCloseEvents.length === 1 ? 'event' : 'events'})
+                                        </h4>
+                                        <div className="space-y-1">
+                                            {allCloseEvents.map((event, index: number) => (
+                                                <div 
+                                                    key={event.id || index}
+                                                    className="grid grid-cols-12 gap-2 py-2 text-sm bg-white rounded px-3 border border-zinc-100"
+                                                >
+                                                    {/* Date & Time */}
+                                                    <div className="col-span-3 flex items-center gap-1.5 text-zinc-600">
+                                                        {new Intl.DateTimeFormat("en-GB", {
+                                                            day: "2-digit",
+                                                            month: "short",
+                                                        }).format(new Date(event.date))}
+                                                        <span className="text-xs text-zinc-400">{event.time}</span>
+                                                        {'isFinal' in event && event.isFinal && (
+                                                            <span className="text-[9px] px-1 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">
+                                                                Final
+                                                            </span>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Sell Price */}
+                                                    <div className="col-span-3 text-zinc-600">
+                                                        <span className="text-xs text-zinc-400">@ </span>
+                                                        {event.sellPrice}
+                                                    </div>
+
+                                                    {/* Quantity */}
+                                                    <div className="col-span-2 text-zinc-600">
+                                                        <span className="text-xs text-zinc-400">Qty: </span>
+                                                        {event.quantitySold}
+                                                    </div>
+
+                                                    {/* Result */}
+                                                    <div className="col-span-4 flex items-center gap-1 justify-end">
+                                                        {event.result >= 0 ? (
+                                                            <FaArrowTrendUp className="text-buy text-xs" />
+                                                        ) : (
+                                                            <FaArrowTrendDown className="text-sell text-xs" />
+                                                        )}
+                                                        <span className={`font-medium ${
+                                                            event.result >= 0 ? "text-buy" : "text-sell"
+                                                        }`}>
+                                                            {event.result >= 0 ? "+" : ""}
+                                                            {event.result.toLocaleString("de-DE")}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                 )}
-                        </div>
-
-                        {/* Rating */}
-                        <div className="hidden md:block md:col-span-4 text-center">
-                            <div className="flex items-center justify-center gap-0.5">
-                                {[...Array(5)].map((_, i) => (
-                                    <MdStar
-                                        key={i}
-                                        className={`text-sm ${
-                                            trade.rating && trade.rating > i
-                                                ? "text-yellow-500"
-                                                : "text-neutral-400"
-                                        }`}
-                                    />
-                                ))}
                             </div>
-                        </div>
-
-                        {/* Note */}
-                        <div className="hidden md:block md:col-span-1 text-center">
-                            {trade.notes && (
-                                <HoverCard>
-                                    <HoverCardTrigger className="flex items-center justify-center">
-                                        <BookOpen className="w-4 h-4 text-gray-600 hover:text-gray-800 cursor-pointer" />
-                                    </HoverCardTrigger>
-                                    <HoverCardContent>
-                                        <div className="flex flex-col gap-2">
-                                            <div className="flex items-center gap-2">
-                                                <Image
-                                                    src="/logo.svg"
-                                                    height={20}
-                                                    width={20}
-                                                    alt="logo"
-                                                />
-                                                <h1 className="text-neutral-400">
-                                                    @tradejournal.one
-                                                </h1>
-                                            </div>
-                                            <div className="py-2">
-                                                {trade.notes}
-                                            </div>
-                                        </div>
-                                    </HoverCardContent>
-                                </HoverCard>
-                            )}
-                        </div>
-
-                        {/* Edit */}
-                        <div className="col-span-1 text-center">
-                            <EditTrade trade={trade} />
-                        </div>
-
-                        {/* Delete */}
-                        <div className="col-span-1 text-center">
-                            <MdDelete
-                                onClick={() => {
-                                    setTradeToDelete(trade);
-                                    setDeleteDialogOpen(true);
-                                }}
-                                className="text-lg text-sell cursor-pointer hover:text-red-600 transition-colors mx-auto"
-                            />
-                        </div>
-                    </div>
-                ))}
-            </div>
-
-            {/* Grid Footer */}
-            <div className="sticky bottom-0 right-0 left-0 bg-white w-full border-t p-4 mt-auto">
-                <div className="flex justify-between text-lg font-medium">
-                    <span>Total</span>
-                    <span>{total.toLocaleString("de-DE")}</span>
+                        );
+                    })}
                 </div>
             </div>
 
             {/* Strategy Rules Dialog */}
-            <Dialog
-                open={strategyDialogOpen}
-                onOpenChange={setStrategyDialogOpen}>
+            <Dialog open={strategyDialogOpen} onOpenChange={setStrategyDialogOpen}>
                 <DialogContent className="max-w-xl max-h-[80vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>
@@ -421,14 +429,10 @@ export const CloseTradesTable = ({
                                 )!
                             }
                             checkedOpenRules={
-                                selectedTrade.appliedOpenRules?.map(
-                                    (rule) => rule.id
-                                ) || []
+                                selectedTrade.appliedOpenRules?.map((rule) => rule.id) || []
                             }
                             checkedCloseRules={
-                                selectedTrade.appliedCloseRules?.map(
-                                    (rule) => rule.id
-                                ) || []
+                                selectedTrade.appliedCloseRules?.map((rule) => rule.id) || []
                             }
                             onOpenRuleToggle={() => {}}
                             onCloseRuleToggle={() => {}}

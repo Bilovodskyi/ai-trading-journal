@@ -42,56 +42,65 @@ export const StrategyTab = ({
     const selectedStrategy = strategies.find(s => s.id === selectedStrategyId);
 
     return (
-        <div className="relative">
-            <div className="max-h-[70vh] 2xl:max-h-[100vh] md:overflow-y-auto pb-24 pr-1">
-                {/* Strategy Selection */}
-                <div className="mb-4 flex flex-col gap-1">
-                    <Label htmlFor="strategyName" className="mb-1">
-                        Strategy (optional):
+        <div className="flex flex-col gap-4">
+            {/* Strategy Selection */}
+            <div className="border border-zinc-200 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-2">
+                    <Label htmlFor="strategyName" className="text-sm font-medium text-zinc-700">
+                        Select Strategy
                     </Label>
-                    {strategies.length === 0 ? (
-                        <div className="rounded-md border border-dashed border-zinc-300 p-3 text-sm text-zinc-600">
-                            You don&quot;t have any strategies yet.
-                        </div>
-                    ) : (
-                        <Controller
-                            name="strategyName"
-                            control={control}
-                            render={({ field }) => (
-                                <Select
-                                    onValueChange={(value) => {
-                                        field.onChange(value);
-                                        onStrategyChange(value);
-                                    }}
-                                    value={selectedStrategy?.strategyName || field.value}
-                                >
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Select a strategy" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectGroup>
-                                            {strategies.map((strategy) => (
-                                                <SelectItem
-                                                    key={strategy.id}
-                                                    value={strategy.strategyName}>
-                                                    {strategy.strategyName}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectGroup>
-                                    </SelectContent>
-                                </Select>
-                            )}
-                        />
-                    )}
-                    {errors.strategyName && (
-                        <p className="text-red-500 text-sm">
-                            {errors.strategyName.message}
-                        </p>
-                    )}
+                    <span className="text-xs text-zinc-400">
+                        optional
+                    </span>
                 </div>
+                
+                {strategies.length === 0 ? (
+                    <div className="rounded-md border border-dashed border-zinc-300 p-3 text-sm text-zinc-500 text-center">
+                        No strategies yet. Create one in the strategies page.
+                    </div>
+                ) : (
+                    <Controller
+                        name="strategyName"
+                        control={control}
+                        render={({ field }) => (
+                            <Select
+                                onValueChange={(value) => {
+                                    field.onChange(value);
+                                    onStrategyChange(value);
+                                }}
+                                value={selectedStrategy?.strategyName || field.value}
+                            >
+                                <SelectTrigger className="w-full text-sm">
+                                    <SelectValue placeholder="Select a strategy" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectGroup>
+                                        {strategies.map((strategy) => (
+                                            <SelectItem
+                                                key={strategy.id}
+                                                value={strategy.strategyName}>
+                                                {strategy.strategyName}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectGroup>
+                                </SelectContent>
+                            </Select>
+                        )}
+                    />
+                )}
+                {errors.strategyName && (
+                    <p className="text-red-500 text-xs mt-1">
+                        {errors.strategyName.message}
+                    </p>
+                )}
+            </div>
 
-                {/* Strategy Rules */}
-                {selectedStrategy && (
+            {/* Strategy Rules */}
+            {selectedStrategy && (
+                <div className="border border-zinc-200 rounded-lg p-4">
+                    <h3 className="text-sm font-medium text-zinc-700 mb-3">
+                        Checklist for &quot;{selectedStrategy.strategyName}&quot;
+                    </h3>
                     <StrategyRules
                         strategy={selectedStrategy}
                         checkedOpenRules={checkedOpenRules}
@@ -99,8 +108,8 @@ export const StrategyTab = ({
                         onOpenRuleToggle={onOpenRuleToggle}
                         onCloseRuleToggle={onCloseRuleToggle}
                     />
-                )}
-            </div>
+                </div>
+            )}
         </div>
     );
 };

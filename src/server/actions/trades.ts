@@ -45,6 +45,11 @@ export async function getAllTradeRecords(): Promise<Trades[]> {
         strategyId: tradeWithoutUserId.strategyId ?? undefined,
         appliedOpenRules: tradeWithoutUserId.appliedOpenRules ?? undefined,
         appliedCloseRules: tradeWithoutUserId.appliedCloseRules ?? undefined,
+        deposit: tradeWithoutUserId.deposit ?? undefined,
+        instrumentName: tradeWithoutUserId.instrumentName ?? undefined,
+        closeEvents: tradeWithoutUserId.closeEvents ?? undefined,
+        openOtherDetails: tradeWithoutUserId.openOtherDetails ?? undefined,
+        closeOtherDetails: tradeWithoutUserId.closeOtherDetails ?? undefined,
     }));
 
     return [...processedData].reverse();

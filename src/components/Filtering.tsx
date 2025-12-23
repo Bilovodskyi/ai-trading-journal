@@ -193,7 +193,7 @@ export default function Filtering({
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectGroup>
-                                    <SelectItem value="instrumentName">
+                                    <SelectItem value="symbolName">
                                         Symbol
                                     </SelectItem>
                                     <SelectItem value="positionType">

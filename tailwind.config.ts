@@ -58,6 +58,7 @@ export default {
 			},
 			gridTemplateColumns: {
 				'40': 'repeat(40, minmax(0, 1fr))',
+				'33': 'repeat(33, minmax(0, 1fr))',
 				'27': 'repeat(27, minmax(0, 1fr))',
 				'20': 'repeat(20, minmax(0, 1fr))'
 			}
