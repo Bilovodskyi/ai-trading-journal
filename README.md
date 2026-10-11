@@ -1,3 +1,11 @@
+> [!IMPORTANT]
+> **TradeJournal has a successor: [KovaFlow](https://kovaflow.app).**
+> Rebuilt from scratch for crypto derivatives traders. Connect Hyperliquid, Binance, OKX or Bybit read-only, or import a CSV from any exchange. KovaFlow rebuilds every trade with its fees and funding and checks the numbers against what the exchange reports. New accounts get 3 months of Pro free.
+>
+> **[Open KovaFlow →](https://kovaflow.app)** · [Try the demo](https://kovaflow.app/demo)
+
+---
+
 ## Important: Let’s make this journal better together! I want to create a product that works well for everyone. If there’s something you don’t like or a feature you’re missing, please share your thoughts in the Discussions section of this repository or in the Feedback section on tradejournal.one (after logging in, go to Ecosystem → Feedback).
 
 # ⭐️ Support the project
