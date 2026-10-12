@@ -6,6 +6,7 @@ import { Toaster } from "sonner";
 import Image from "next/image";
 import { SiClaude } from "react-icons/si";
 import MobileNavigation from "@/components/MobileNavigation";
+import KovaFlowBanner from "@/components/private-layout/KovaFlowBanner";
 import { useAppDispatch } from "@/redux/store";
 import {
     setInitialMonthViewSummary,
@@ -120,6 +121,7 @@ export default function PrivateLayoutClient({
         <>
             <Toaster position="top-right" richColors />
             <div className="flex flex-col h-svh md:h-screen bg-darkPrimary md:p-2">
+                <KovaFlowBanner />
                 <header className="px-3 md:px-6 py-3 flex items-center justify-between bg-white md:rounded-t-3xl border-b md:border border-zinc-200">
                     <MobileNavigation />
                     <div className="hidden md:flex gap-2 items-center">
