@@ -51,9 +51,8 @@ export async function POST(request: Request) {
 
     try {
         const res = await anthropic.messages.create({
-            model: "claude-3-7-sonnet-20250219",
-            max_tokens: 4000,
-            temperature: 1,
+            model: "claude-sonnet-5-5",
+            max_tokens: 16000,
             system: "Using the provided trade data and previous analysis, answer the follow-up question. Structure your response in a single object.\n\n{\n answer: [\n    // Array of responses addressing the follow-up question based on the trade data and previous analysis\n  ]\n}\n\nIMPORTANT: You must return ONLY valid JSON with no markdown formatting, no backticks, no code block markers, and no additional text before or after the JSON object. The response should begin with { and end with } and contain nothing else.",
 
             messages: [
