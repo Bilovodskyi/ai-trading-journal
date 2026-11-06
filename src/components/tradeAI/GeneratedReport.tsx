@@ -94,7 +94,12 @@ export default function GeneratedReport({
 
                 const data = await res.json();
 
-                const claudeReport = JSON.parse(data.content[0].text);
+                // Newer Claude models can return a thinking block before the text block,
+                // so read the first text block instead of assuming it is content[0].
+                const textBlock = data.content.find(
+                    (block: { type: string }) => block.type === "text"
+                );
+                const claudeReport = JSON.parse(textBlock?.text ?? "");
 
                 setReport((prevReport) => {
                     if (
@@ -190,7 +195,7 @@ export default function GeneratedReport({
                     <div className="flex gap-2 items-center">
                         <p className="p-3">
                             Claude{" "}
-                            <span className="text-zinc-500">4.5 sonnet</span>
+                            <span className="text-zinc-500">sonnet 5.5</span>
                         </p>
                     </div>
                 </div>
