@@ -231,7 +231,7 @@ export default function PrivateLayoutClient({
                                                             Powerful tool to
                                                             improve your results
                                                             with AI. Powered by
-                                                            Claude 4.5 Sonnet.
+                                                            Claude Sonnet 5.5.
                                                         </p>
                                                     </div>
                                                 </NavigationMenuLink>
